@@ -1,0 +1,50 @@
+# RStudio files to ignore
+#
+.Rproj.user/
+.Rhistory
+.Rdata
+.DS_Store
+*.Rproj
+#
+# LaTeX/BibTeX/Biber files to ignore
+#
+*.aux
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.ilg
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.toc
+*.vrb
+*.run.xml
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+#
+# Python files
+#
+__pycache__/
+__pypackages__/
+.ipynb_checkpoints
+*.py[cod]
+*$py.class
+*.so
+.spyderproject
+.spyproject
+#
+# Microsoft Office files to ignore
+#
+~*.doc*
+~*.ppt*
+~*.xls*
+#
+# General files to ignre
+#
+*.bak
+.Rproj.user
