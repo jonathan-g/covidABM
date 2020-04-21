@@ -27,6 +27,7 @@ Imports:
     assertthat,
     readr,
     stringr,
-    tibble
+    tibble,
+    utils
 Depends: 
-    R (>= 2.10)
+    R (>= 3.6.0)

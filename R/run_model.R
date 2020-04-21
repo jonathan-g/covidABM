@@ -23,8 +23,8 @@ run_model <- function(model, ticks, progress = FALSE) {
                I = sum(igraph::V(model$nw)$seir == 3),
                R = sum(igraph::V(model$nw)$seir == 4))
   if (progress || .covidABM$tracing) {
-    head(ts, 1) %>%
-      stringr::str_c(names(.), ., sep = " = ", collapse = ", ") %>%
+    utils::head(ts, 1) %>%
+      stringr::str_c(names(.env$.), .env$., sep = " = ", collapse = ", ") %>%
       message()
   }
   for (i in 1:ticks) {
@@ -36,8 +36,8 @@ run_model <- function(model, ticks, progress = FALSE) {
                   R = sum(igraph::V(model$nw)$seir == 4))
     ts <- dplyr::bind_rows(ts, row)
     if (progress || .covidABM$tracing) {
-      head(row, 1) %>%
-        stringr::str_c(names(.), ., sep = " = ", collapse = ", ") %>%
+      utils::head(row, 1) %>%
+        stringr::str_c(names(.env$.), .env$., sep = " = ", collapse = ", ") %>%
         message()
     }
   }
