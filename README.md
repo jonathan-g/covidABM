@@ -7,22 +7,7 @@
 [![pipeline status](https://gitlab.jgilligan.org/covid-19-modeling/covid-abm-package/badges/master/pipeline.svg)](https://gitlab.jgilligan.org/covid-19-modeling/covid-abm-package/-/commits/master)
 <!-- badges: end -->
 
-The goal of covidABM is to ...
+covidABM is an R package that encapsulates a simple agent-based model of COVID-19 transmission.
 
-## Installation
-
-You can install the released version of covidABM from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("covidABM")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(covidABM)
-## basic example code
-```
-
+The model is under active development and is currently in an early experimental
+state. More detailed documnetation will appear as this package matures.
