@@ -4,6 +4,7 @@
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![pipeline status](https://gitlab.jgilligan.org/covid-19-modeling/covid-abm-package/badges/master/pipeline.svg)](https://gitlab.jgilligan.org/covid-19-modeling/covid-abm-package/-/commits/master)
 <!-- badges: end -->
 
 The goal of covidABM is to ...
