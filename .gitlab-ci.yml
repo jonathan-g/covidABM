@@ -24,7 +24,7 @@ testing:
     only:
         - master
     script:
-        - Rscript -e 'install.packages("DT")'
+        - Rscript -e 'install.packages(c("DT", "igraph"))'
         - Rscript -e 'covr::gitlab(quiet = FALSE)'
     artifacts:
         paths:
