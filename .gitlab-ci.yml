@@ -58,7 +58,7 @@ pages:
           - Rscript -e 'pkgdown::build_site(override = list(destination = "public"), preview=FALSE)'
       artifacts:
           paths:
-              - docs
+              - public
           expire_in: 30 days
       only:
           - master
