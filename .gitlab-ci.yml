@@ -33,15 +33,15 @@ testing:
 # To produce a code coverage report as a GitLab page see
 # https://about.gitlab.com/2016/11/03/publish-code-coverage-report-with-gitlab-pages/
 
-pages:
-    stage: deploy
-    dependencies:
-        - testing
-    script:
-        - ls
-    artifacts:
-        paths:
-            - public
-        expire_in: 30 days
-    only:
-        - master
+# pages:
+#     stage: deploy
+#     dependencies:
+#         - testing
+#     script:
+#         - ls
+#     artifacts:
+#         paths:
+#             - public
+#         expire_in: 30 days
+#     only:
+#         - master

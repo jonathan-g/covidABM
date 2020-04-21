@@ -5,3 +5,6 @@
 ^data-raw$
 ^\.gitlab-ci\.yml$
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
