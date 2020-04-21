@@ -8,6 +8,7 @@
 #' @export
 #' @importFrom magrittr %>%
 #' @usage lhs \%>\% rhs
+#' @keywords internal
 NULL
 
 #' Exposition operator
@@ -20,4 +21,5 @@ NULL
 #' @export
 #' @importFrom magrittr %$%
 #' @usage lhs \%$\% rhs
+#' @keywords internal
 NULL

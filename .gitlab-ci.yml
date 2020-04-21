@@ -45,3 +45,20 @@ testing:
 #         expire_in: 30 days
 #     only:
 #         - master
+
+pages:
+      stage: deploy
+      dependencies:
+          - testing
+      script:
+          - Rscript -e "remotes::install_local(dependencies = TRUE)"
+          - Rscript -e 'install.packages("pkgdown")'
+          - Rscript -e 'file.create("pkgdown.yml")'
+          - cp pkgdown.yml public
+          - Rscript -e 'pkgdown::build_site(override = list(destination = "public"), preview=FALSE)'
+      artifacts:
+          paths:
+              - docs
+          expire_in: 30 days
+      only:
+          - master

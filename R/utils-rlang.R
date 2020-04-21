@@ -6,4 +6,5 @@
 #' @rdname rlang_data
 #' @keywords internal
 #' @importFrom rlang .data
+#' @keywords internal
 NULL

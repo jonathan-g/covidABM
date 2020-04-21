@@ -1,1 +1,5 @@
 destination: docs
+reference:
+- title: "An agent-based model of COVID-19 transmission"
+  desc: >
+    Simulate the spread of COVID-19 across social networks.

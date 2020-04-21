@@ -121,7 +121,7 @@ calculate transmission of the disease (stochastically, infectious people may
 infect susceptible people) through network connections.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>tick</span>(<span class='no'>model</span>)</pre>
+    <pre class="usage"><span class='fu'>tick</span>(<span class='no'>model</span>, <span class='kw'>tracing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -129,6 +129,12 @@ infect susceptible people) through network connections.</p>
     <tr>
       <th>model</th>
       <td><p>A model object, created by <code><a href='setup_model.html'>setup_model()</a></code></p></td>
+    </tr>
+    <tr>
+      <th>tracing</th>
+      <td><p>Whether to print informative messages about the results of
+the tick. If it's <code>TRUE</code> or 1, a message is printed. If it's greater than 1
+additional messages from <code><a href='infect.html'>infect()</a></code> are printed.</p></td>
     </tr>
     </table>
 

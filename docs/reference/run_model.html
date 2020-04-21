@@ -115,7 +115,7 @@
     <p>Run a model for a specified number of ticks, where each tick is a day.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_model</span>(<span class='no'>model</span>, <span class='no'>ticks</span>)</pre>
+    <pre class="usage"><span class='fu'>run_model</span>(<span class='no'>model</span>, <span class='no'>ticks</span>, <span class='kw'>progress</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -127,6 +127,12 @@
     <tr>
       <th>ticks</th>
       <td><p>Number of days to simulate.</p></td>
+    </tr>
+    <tr>
+      <th>progress</th>
+      <td><p>Print progress messages for every tick
+If it's <code>TRUE</code> or 1, a message is printed. If it's greater than 1
+additional messages from <code><a href='tick.html'>tick()</a></code> are printed.</p></td>
     </tr>
     </table>
 

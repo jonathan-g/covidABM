@@ -4,10 +4,14 @@
 \alias{tick}
 \title{Advance model by one tick}
 \usage{
-tick(model)
+tick(model, tracing = FALSE)
 }
 \arguments{
 \item{model}{A model object, created by \code{\link[=setup_model]{setup_model()}}}
+
+\item{tracing}{Whether to print informative messages about the results of
+the tick. If it's \code{TRUE} or 1, a message is printed. If it's greater than 1
+additional messages from \code{\link[=infect]{infect()}} are printed.}
 }
 \value{
 An updated model

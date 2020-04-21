@@ -6,12 +6,17 @@
 #' infect susceptible people) through network connections.
 #'
 #' @param model A model object, created by [setup_model()]
+#' @param tracing Whether to print informative messages about the results of
+#'   the tick. If it's `TRUE` or 1, a message is printed. If it's greater than 1
+#'   additional messages from [infect()] are printed.
 #'
 #' @return An updated model
 #' @examples
 #' # ADD_EXAMPLES_HERE
 #' @export
-tick <- function(model) {
+tick <- function(model, tracing = FALSE) {
+  tracing <- as.integer(tracing)
+  verbose <- max(0, tracing - 1)
   level_e <- get_seir_level("E")
   level_i <- get_seir_level("I")
   level_r <- get_seir_level("R")
@@ -29,12 +34,14 @@ tick <- function(model) {
   i_trans_nodes <- i_nodes[purrr::rbernoulli(length(i_probs), i_probs)]
   e_trans_nodes <- e_nodes[purrr::rbernoulli(length(e_probs), e_probs)]
 
-  message(length(i_nodes), " infected nodes: ", length(i_trans_nodes),
-          " recover.")
-  message(length(e_nodes), " exposed nodes: ", length(e_trans_nodes),
-          " become infectious.")
-  # message("i_probs = (",stringr::str_c(i_probs, collapse = ", "), ")")
-  # message("e_probs = (",stringr::str_c(e_probs, collapse = ", "), ")")
+  if (tracing || .covidABM$tracing) {
+    message(length(i_nodes), " infected nodes: ", length(i_trans_nodes),
+            " recover.")
+    message(length(e_nodes), " exposed nodes: ", length(e_trans_nodes),
+            " become infectious.")
+    # message("i_probs = (",stringr::str_c(i_probs, collapse = ", "), ")")
+    # message("e_probs = (",stringr::str_c(e_probs, collapse = ", "), ")")
+  }
 
   igraph::vertex_attr(nw, "seir", i_trans_nodes) <- level_r
   igraph::vertex_attr(nw, "ticks", i_trans_nodes) <- 0
@@ -42,7 +49,7 @@ tick <- function(model) {
   igraph::vertex_attr(nw, "seir", e_trans_nodes) <- level_i
   igraph::vertex_attr(nw, "ticks", e_trans_nodes) <- 0
 
-  nw <- infect(nw, model$probs)
+  nw <- infect(nw, model$probs, tracing = verbose)
 
   model$nw <- nw
   invisible(model)

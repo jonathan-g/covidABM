@@ -7,7 +7,8 @@
 [![pipeline status](https://gitlab.jgilligan.org/covid-19-modeling/covid-abm-package/badges/master/pipeline.svg)](https://gitlab.jgilligan.org/covid-19-modeling/covid-abm-package/-/commits/master)
 <!-- badges: end -->
 
-covidABM is an R package that encapsulates a simple agent-based model of COVID-19 transmission.
+covidABM is an R package that encapsulates a simple agent-based model of 
+COVID-19 transmission.
 
 The model is under active development and is currently in an early experimental
 state. More detailed documnetation will appear as this package matures.

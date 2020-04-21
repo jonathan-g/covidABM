@@ -4,12 +4,16 @@
 \alias{run_model}
 \title{Run a model}
 \usage{
-run_model(model, ticks)
+run_model(model, ticks, progress = FALSE)
 }
 \arguments{
 \item{model}{A model object returned from \code{\link[=setup_model]{setup_model()}}.}
 
 \item{ticks}{Number of days to simulate.}
+
+\item{progress}{Print progress messages for every tick
+If it's \code{TRUE} or 1, a message is printed. If it's greater than 1
+additional messages from \code{\link[=tick]{tick()}} are printed.}
 }
 \value{
 A named list with the resulting model after the ticks, and

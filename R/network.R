@@ -66,7 +66,7 @@ create_network <- function(agents, dim, nei, p) {
 #' @examples
 #' # ADD_EXAMPLES_HERE
 #' @export
-infect <- function(network, prob) {
+infect <- function(network, prob, tracing = FALSE) {
   infected <- 0
   level_s <- get_seir_level("S")
   level_e <- get_seir_level("E")
@@ -102,7 +102,9 @@ infect <- function(network, prob) {
       #        stringr::str_c(collapse = ", "))
     }
   }
-  message(infected, " new transmissions.")
+  if (tracing || .covidABM$tracing) {
+    message(infected, " new transmissions.")
+  }
   # gs_neighbors <<- s_neighbors
   invisible(network)
 }
