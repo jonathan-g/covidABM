@@ -44,7 +44,7 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
 
   # Set up SEIR status
   if(is.numeric(seir_dist)) {
-    assert_that(length(seir_dist == length(seir_levels)))
+    assertthat::assert_that(length(seir_dist == length(seir_levels)))
     seir <- sample(names(seir_levels), agent_count, replace = TRUE,
                    prob = seir_dist)
   } else if (is.character(seir_dist) || is.factor(seir_dist)) {
@@ -62,12 +62,13 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
   if (is.logical(p_female)) {
     sex <- rep_len(p_female, agent_count)
   } else if (is.character(p_female)) {
-    sex = rep_len(str_starts(p_female, fixed("F", ignore_case = TRUE)),
+    sex = rep_len(
+      stringr::str_starts(p_female, stringr::fixed("F", ignore_case = TRUE)),
                   agent_count)
   } else if (is.integer(p_female)) {
     sex = rep_len(p_female > 0, agent_count)
   } else if (is.double(p_female)) {
-    sex = rbernoulli(agent_count, p_female)
+    sex = purrr::rbernoulli(agent_count, p_female)
   } else {
     stop("Invalid type for p_female")
   }
@@ -77,12 +78,13 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
   if (is.logical(p_med_cond)) {
     med_cond <- rep_len(p_med_cond, agent_count)
   } else if (is.character(p_med_cond)) {
-    med_cond = rep_len(str_starts(p_med_cond, fixed("F", ignore_case = TRUE)),
-                       agent_count)
+    med_cond = rep_len(
+      stringr::str_starts(p_med_cond, stringr::fixed("F", ignore_case = TRUE)),
+      agent_count)
   } else if (is.integer(p_med_cond)) {
     med_cond = rep_len(p_med_cond > 0, agent_count)
   } else if (is.double(p_med_cond)) {
-    med_cond = rbernoulli(agent_count, p_med_cond)
+    med_cond = purrr::rbernoulli(agent_count, p_med_cond)
   } else {
     stop("Invalid type for p_med_cond")
   }
@@ -91,12 +93,13 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
   if (is.logical(p_sympt)) {
     sympt <- rep_len(p_sympt, agent_count)
   } else if (is.character(p_sympt)) {
-    sympt = rep_len(str_starts(p_sympt, fixed("F", ignore_case = TRUE)),
+    sympt = rep_len(
+      stringr::str_starts(p_sympt, stringr::fixed("F", ignore_case = TRUE)),
                     agent_count)
   } else if (is.integer(p_sympt)) {
     sympt = rep_len(p_sympt > 0, agent_count)
   } else if (is.double(p_sympt)) {
-    sympt = rbernoulli(agent_count, p_sympt)
+    sympt = purrr::rbernoulli(agent_count, p_sympt)
   } else {
     stop("Invalid type for p_sympt")
   }
@@ -133,6 +136,8 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
 #'   on the ring;  4 = connect to both neighbors and their neighbors, etc.).
 #' @param p_rewire The probability to rewire an edge from a neighbor to a
 #'   random node..
+#' @param probs A contagion probability matrix
+#' @param trans Disease progression transition parameters
 #'
 #' @return A named list of the model: agents, network, contagion
 #'   probabilities for disease transmission, and transition probabilities for
@@ -144,10 +149,10 @@ setup_model <- function(agent_count, age_dist, p_female,
                         seir_dist, p_med_cond, p_symptomatic,
                         neighbors, p_rewire, probs = NULL, trans = NULL) {
   if (is.null(probs)) {
-    probs <- get("probs", envir = .covidABM)
+    probs <- .covidABM$probs
   }
   if (is.null(trans)) {
-    trans <- get("trans", envir = .covidABM)
+    trans <- .covidABM$trans
   }
 
   distr <- generate_agent_params(agent_count, age_dist, p_female,
@@ -158,7 +163,8 @@ setup_model <- function(agent_count, age_dist, p_female,
                           fix_sympt = TRUE)
   network <- create_network(agents, 1, neighbors, p_rewire)
 
-  invisible(list(agts = agents, nw = network))
+  invisible(list(agts = agents, nw = network,
+                 probs = probs, transitions = trans))
 }
 
 
@@ -180,7 +186,7 @@ setup_model <- function(agent_count, age_dist, p_female,
 #' @param p_rewire The probability to rewire an edge from a neighbor to a
 #'   random node..
 #'
-#' @return A model, as returned by [setup_model]
+#' @return A model, as returned by [setup_model()]
 #' @examples
 #' # ADD_EXAMPLES_HERE
 #' @export
@@ -189,13 +195,13 @@ setup_test_model <- function(n_agents = 100, mean_age = 40.0, std_age = 20.0,
                              p_seir = c(0.99, 0.0, 0.01, 0.0),
                              p_sympt = 0.50, neighbors = 5, p_rewire = 0.05) {
   f_age <- ~rnorm(n = .n, mean = mean_age, sd = std_age)
-  xp <- f_rhs(f_age) %>% call_standardise() %>%
-    call_modify(mean = mean_age, sd = std_age)
-  f_rhs(f_age) <- xp
+  xp <- rlang::f_rhs(f_age) %>% rlang::call_standardise() %>%
+    rlang::call_modify(mean = mean_age, sd = std_age)
+  rlang::f_rhs(f_age) <- xp
   f_seir <- ~base::sample(c("S", "E", "I", "R"), .n, TRUE, p_seir)
-  xp <- f_rhs(f_seir) %>% call_standardise() %>%
-    call_modify(prob = p_seir)
-  f_rhs(f_seir) <- xp
+  xp <- rlang::f_rhs(f_seir) %>% rlang::call_standardise() %>%
+    rlang::call_modify(prob = p_seir)
+  rlang::f_rhs(f_seir) <- xp
 
   model <- setup_model(n_agents, f_age, p_female,
                        f_seir, p_med_cond, p_sympt,

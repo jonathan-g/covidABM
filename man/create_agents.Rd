@@ -16,7 +16,10 @@ create_agents(age, sex, med_cond, seir_status, sympt, fix_sympt = TRUE)
 \item{seir_status}{SEIR status: "S", "E", "I", "R", or an ordered factor
 with those levels.}
 
-\item{sympt}{Logical: subject is infected and has symptoms.}
+\item{sympt}{Subject is infected and has symptoms (logical).}
+
+\item{fix_sympt}{Set \code{sympt} to \code{FALSE} for agents where \code{seir_status} is
+not "I".}
 }
 \value{
 A tibble of agent characteristics with columns

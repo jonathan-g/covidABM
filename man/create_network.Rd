@@ -23,8 +23,9 @@ are they exhibiting symptoms of COVID-19?
 \item{dim}{Dimension of the network. Should be 1. The number of
 vertices is
 \ifelse{html}{\out{<i>N</i><sup><i>d</i></sup>}}{\eqn{\eqn{N^d}}{_N^d_)}},
-where \emph{N} is the number of agents (\code{nrow(agents)}) and \emph{d} is the dimension.
-For multidimensional arrays, neighborhoods are calaculated along all axes.}
+where \emph{N} is the number of agents (\code{nrow(agents)}) and \emph{d} is the
+dimension. For multidimensional arrays, neighborhoods are calaculated along
+all axes.}
 
 \item{nei}{Network distance (around a ring or hyper-torus) that will be
 connected by neighbor links. If \code{nei} is 2, then the small world
@@ -45,12 +46,14 @@ Given a set of agents, build a small-world network and give each vertex the
 attributes of one of the agents
 }
 \examples{
+\dontrun{
 n_agt <- 20
-agents <- create_agends(age = runif(n_agt, max = 90),
+agents <- create_agents(age = runif(n_agt, max = 90),
   sex = sample(c("F", "M"), n_agt, replace = TRUE),
-  med_cond = rbernoulli(n_agt, 0.20),
+  med_cond = purrr::rbernoulli(n_agt, 0.20),
   seir_status = sample(c("S", "E", "I", "R"), replace = TRUE,
     prob = c(0.9, 0.05, 0.05, 0.0)),
-  sympt = rbernoulli(n_agt, 0.5))
+  sympt = purrr::rbernoulli(n_agt, 0.5))
 network <- create_network(agents, 1, 5, 0.05)
+}
 }

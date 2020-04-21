@@ -7,7 +7,7 @@
 build_transition_matrix(trans_df)
 }
 \arguments{
-\item{prob_df}{A data frame with columns:
+\item{trans_df}{A data frame with columns:
 \itemize{
 \item \code{age_bkt} An ordered factor for age-bracket (lower = younger)
 \item \code{sex} A factor or character vector "F" or "M"

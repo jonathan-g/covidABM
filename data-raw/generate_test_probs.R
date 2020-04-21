@@ -14,11 +14,11 @@ generate_probs <- function(r0 = 2.3, contacts = 5, days_contagious = 14) {
                   agt_sympt = c(TRUE, FALSE),
                   sub_age_bkt = seq(nrow(age_brackets)),
                   sub_sex = c("M", "F"), sub_med_cond = c(TRUE, FALSE)) %>%
-    map(~rep_len(.x, 8)) %>% as_tibble() %>%
+    purrr::map(~rep_len(.x, 8)) %>%tibble::as_tibble() %>%
     tidyr::expand(!!!rlang::syms(names(.))) %>%
     distinct()
 
-  prob_df <- prob_df %>% mutate(shed = ifelse(agt_sex == "M", 1.0, 0.75) *
+  prob_df <- prob_df %>% dplyr::mutate(shed = ifelse(agt_sex == "M", 1.0, 0.75) *
                                   ifelse(agt_sympt, 1.0, 0.52) *
                                   case_when(
                                     agt_age_bkt == 1 ~ 0.50,
@@ -46,8 +46,8 @@ generate_probs <- function(r0 = 2.3, contacts = 5, days_contagious = 14) {
   p_norm <- r0 / (contacts * days_contagious)
 
   p_mean <- mean(prob_df$prob)
-  prob_df <- prob_df %>% select(-shed, -suscept) %>%
-    mutate(prob = prob * p_norm / p_mean)
+  prob_df <- prob_df %>% dplyr::select(-shed, -suscept) %>%
+    dplyr::mutate(prob = prob * p_norm / p_mean)
 
   invisible(prob_df)
 }
@@ -65,7 +65,7 @@ generate_probs <- function(r0 = 2.3, contacts = 5, days_contagious = 14) {
 create_prob_cfg <- function(file = "probabilities.csv") {
   pdf <- generate_probs()
   if (! is.null(file)) {
-    write_csv(pdf, file)
+    readr::write_csv(pdf, file)
   }
   invisible(pdf)
 }
@@ -87,7 +87,7 @@ generate_transitions <- function(min_incubate = 2.5, max_incubate = 11.5,
                                  min_contagious = 10, max_contagious = 18) {
   df <- list(sex = c("M", "F"), age_bkt = seq(nrow(age_brackets)),
              sympt = c(TRUE, FALSE), med_cond = c(TRUE, FALSE)) %>%
-    map(~rep_len(.x, 8)) %>% as_tibble() %>%
+    purrr::map(~rep_len(.x, 8)) %>%tibble::as_tibble() %>%
     tidyr::expand(!!!rlang::syms(names(.))) %>%
     distinct()
 
@@ -95,7 +95,7 @@ generate_transitions <- function(min_incubate = 2.5, max_incubate = 11.5,
   x_low <- x0 - qlogis(0.025, x0, 1.0)
   s <- (x0 - min_incubate) / x_low
 
-  e_df <- df %>% mutate(loc = ifelse(sex == "M", x0, x0) *
+  e_df <- df %>% dplyr::mutate(loc = ifelse(sex == "M", x0, x0) *
                           case_when(
                             age_bkt == 1 ~ 1.3,
                             age_bkt == 2 ~ 1.2,
@@ -110,7 +110,7 @@ generate_transitions <- function(min_incubate = 2.5, max_incubate = 11.5,
   x_low <- x0 - qlogis(0.025, x0, 1.0)
   s <- (x0 - min_contagious) / x_low
 
-  i_df <- df %>% mutate(loc = ifelse(sex == "M", x0, x0) *
+  i_df <- df %>% dplyr::mutate(loc = ifelse(sex == "M", x0, x0) *
                           case_when(
                             age_bkt == 1 ~ 0.8,
                             age_bkt == 2 ~ 1.0,
@@ -122,12 +122,12 @@ generate_transitions <- function(min_incubate = 2.5, max_incubate = 11.5,
                           ifelse(med_cond, 1.25, 1.00),
                         scale = s)
 
-  e_df <- e_df %>% mutate(compartment = "E")
+  e_df <- e_df %>% dplyr::mutate(compartment = "E")
 
-  i_df <- i_df %>% mutate(compartment = "I")
+  i_df <- i_df %>% dplyr::mutate(compartment = "I")
 
-  df <- bind_rows(e_df, i_df) %>%
-    pivot_longer(cols = c("loc", "scale"), names_to = "param",
+  df <- dplyr::bind_rows(e_df, i_df) %>%
+    tidyr::pivot_longer(cols = c("loc", "scale"), names_to = "param",
                  values_to = "value")
 
   invisible(df)
@@ -146,7 +146,7 @@ generate_transitions <- function(min_incubate = 2.5, max_incubate = 11.5,
 create_transition_cfg <- function(file = "transitions.csv") {
   trans_df <- generate_transitions()
   if (!is.null(file)) {
-    write_csv(trans_df, file)
+    readr::write_csv(trans_df, file)
   }
   invisible(trans_df)
 }

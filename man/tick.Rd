@@ -4,16 +4,10 @@
 \alias{tick}
 \title{Advance model by one tick}
 \usage{
-tick(model, probs, transitions)
+tick(model)
 }
 \arguments{
-\item{model}{A model object.}
-
-\item{probs}{A probability array (n-dimensional) for transmission of
-infection from infectious to susceptible agents.}
-
-\item{An}{array of transition probabilities between compartments of the
-disease.}
+\item{model}{A model object, created by \code{\link[=setup_model]{setup_model()}}}
 }
 \value{
 An updated model

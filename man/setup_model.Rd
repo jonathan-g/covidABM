@@ -47,6 +47,10 @@ on the ring;  4 = connect to both neighbors and their neighbors, etc.).}
 
 \item{p_rewire}{The probability to rewire an edge from a neighbor to a
 random node..}
+
+\item{probs}{A contagion probability matrix}
+
+\item{trans}{Disease progression transition parameters}
 }
 \value{
 A named list of the model: agents, network, contagion

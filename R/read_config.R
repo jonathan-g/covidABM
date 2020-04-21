@@ -10,7 +10,7 @@
 #' # ADD_EXAMPLES_HERE
 #' @export
 read_probs <- function(prob_file = "probabilities.csv") {
-  prob_df <- read_csv(prob_file)
+  prob_df <- readr::read_csv(prob_file)
   probs <- build_prob_matrix(prob_df)
   invisible(probs)
 }
@@ -32,9 +32,11 @@ read_probs <- function(prob_file = "probabilities.csv") {
 #' # ADD_EXAMPLES_HERE
 #' @export
 read_trans <- function(trans_file = "transitions.csv") {
-  trans_df <- read_csv(trans_file)
-  e_df <- trans_df %>% filter(compartment == "E") %>% select(-compartment)
-  i_df <- trans_df %>% filter(compartment == "I") %>% select(-compartment)
+  trans_df <- readr::read_csv(trans_file)
+  e_df <- trans_df %>% dplyr::filter(.data$compartment == "E") %>%
+    dplyr::select(-.data$compartment)
+  i_df <- trans_df %>% dplyr::filter(.data$compartment == "I") %>%
+    dplyr::select(-.data$compartment)
   e_trans <- build_transition_matrix(e_df)
   i_trans <- build_transition_matrix(i_df)
   invisible(list(e = e_trans, i = i_trans))

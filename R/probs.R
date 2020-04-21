@@ -19,6 +19,7 @@
 #' # ADD_EXAMPLES_HERE
 #' @export
 build_prob_matrix <- function(prob_df) {
+  age_brackets <- get("age_brackets", .covidABM)
   dims <- c(sub_age = max(age_brackets$bracket),
             sub_sex = 2,
             sub_med_cond = 2,
@@ -28,17 +29,18 @@ build_prob_matrix <- function(prob_df) {
   sympt <- factor(c("yes", "no"))
   med_cond <- factor(c("yes", "no"))
   prob_df <- prob_df %>%
-    select(agt_sympt, agt_sex, agt_age_bkt,
-           sub_med_cond, sub_sex, sub_age_bkt, prob) %>%
-    arrange(agt_sympt, agt_sex, agt_age_bkt,
-            sub_med_cond, sub_sex, sub_age_bkt)
+    dplyr::select(.data$agt_sympt, .data$agt_sex, .data$agt_age_bkt,
+                  .data$sub_med_cond, .data$sub_sex, .data$sub_age_bkt,
+                  .data$prob) %>%
+    dplyr::arrange(.data$agt_sympt, .data$agt_sex, .data$agt_age_bkt,
+                   .data$sub_med_cond, .data$sub_sex, .data$sub_age_bkt)
   probs <- array(prob_df$prob, dim = dims,
-                 dimnames = list(str_c("age_s_", seq(dims['sub_age'])),
-                                 str_c("sex_s_", levels(sex)),
-                                 str_c("cond_s_", levels(med_cond)),
-                                 str_c("age_a_", seq(dims['agt_age'])),
-                                 str_c("sex_a_", levels(sex)),
-                                 str_c("sympt_a_", levels(sympt))))
+                 dimnames = list(stringr::str_c("age_s_", seq(dims['sub_age'])),
+                                stringr::str_c("sex_s_", levels(sex)),
+                                stringr::str_c("cond_s_", levels(med_cond)),
+                                stringr::str_c("age_a_", seq(dims['agt_age'])),
+                                stringr::str_c("sex_a_", levels(sex)),
+                                stringr::str_c("sympt_a_", levels(sympt))))
   invisible(probs)
 }
 
@@ -59,15 +61,15 @@ build_prob_matrix <- function(prob_df) {
 #' # ADD_EXAMPLES_HERE
 #' @export
 get_prob <- function(agent, neighbors, probs) {
-  g_agt <<- agent
-  g_nbrs <<- neighbors
+  # g_agt <<- agent
+  # g_nbrs <<- neighbors
   idx <- function(obj, ...) { obj[...] }
   list(sub_age_bkt = neighbors$age_bkt, sub_sex = neighbors$sex,
        sub_med_cond = neighbors$med_cond,
        agt_age_bkt = agent$age_bkt, agt_sex = agent$sex,
        agt_sympt = agent$sympt) %>%
-    as_tibble() %>% # mutate_if(is.logical, ~1 + as.integer(.x)) %>%
-    pmap_dbl(idx, obj = probs)
+    tibble::as_tibble() %>% # dplyr::mutate_if(is.logical, ~1 + as.integer(.x)) %>%
+    purrr::pmap_dbl(idx, obj = probs)
 }
 
 

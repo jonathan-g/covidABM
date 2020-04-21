@@ -7,7 +7,7 @@
 run_model(model, ticks)
 }
 \arguments{
-\item{model}{A model object returned from \link{create_model}.}
+\item{model}{A model object returned from \code{\link[=setup_model]{setup_model()}}.}
 
 \item{ticks}{Number of days to simulate.}
 }

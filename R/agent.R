@@ -7,10 +7,12 @@
 #'
 #' @return An integer value
 #' @examples
-#' get_seir_level("I")
+#'   get_seir_level("I")
+#'
+#' @export
 get_seir_level <- function(x) {
-  assert_that(x %in% names(seir_levels))
-  seir_levels[x]
+  assertthat::assert_that(x %in% names(.covidABM$seir_levels))
+  .covidABM$seir_levels[x]
 }
 
 
@@ -23,9 +25,12 @@ get_seir_level <- function(x) {
 #' @return A factor with levels "S", "E", "I", or "R"
 #' @examples
 #' decode_seir(3)
+#'
+#' @export
 decode_seir <- function(x) {
-  assert_that(all(x %in% seir_levels))
-  names(seir_levels)[x] %>% ordered(levels = names(seir_levels))
+  assertthat::assert_that(all(x %in% .covidABM$seir_levels))
+  names(.covidABM$seir_levels)[x] %>%
+    ordered(levels = names(.covidABM$seir_levels))
 }
 
 #' Get the age bracket
@@ -38,8 +43,12 @@ decode_seir <- function(x) {
 #' @examples
 #' get_age_bracket(21)
 #' get_age_bracket(c(10, 20, 21, 25, 29, 30, 31, 39, 40, 41))
+#'
+#' @export
 get_age_bracket <- function(x) {
-  age_brackets$bracket[map_int(x, ~which(age_brackets$upper > .x)[1])]
+  .covidABM$age_brackets$bracket[
+    purrr::map_int(x, ~which(.covidABM$age_brackets$upper > .x)[1])
+    ]
 }
 
 #' Create one or more agents
@@ -51,7 +60,9 @@ get_age_bracket <- function(x) {
 #' @param med_cond Logical: has a pre-existing medical condition
 #' @param seir_status SEIR status: "S", "E", "I", "R", or an ordered factor
 #'   with those levels.
-#' @param sympt Logical: subject is infected and has symptoms.
+#' @param sympt Subject is infected and has symptoms (logical).
+#' @param fix_sympt Set `sympt` to `FALSE` for agents where `seir_status` is
+#'   not "I".
 #'
 #' @return A tibble of agent characteristics with columns
 #'   * `age`: Age in years (numeric).
@@ -68,27 +79,29 @@ get_age_bracket <- function(x) {
 #' @export
 create_agents <- function(age, sex, med_cond, seir_status, sympt,
                           fix_sympt = TRUE) {
-  assert_that(is.numeric(age), msg = 'age should be a numeric value (years)')
-  assert_that(all(sex %in% c("M", "F")), msg = ('Sex should be "M" or "F"'))
+  assertthat::assert_that(is.numeric(age),
+                          msg = 'age should be a numeric value (years)')
+  assertthat::assert_that(all(sex %in% c("M", "F")),
+                          msg = ('Sex should be "M" or "F"'))
   sex <- factor(sex, levels = c("M", "F"))
-  assert_that(is.logical(med_cond),
+  assertthat::assert_that(is.logical(med_cond),
               msg = 'med_cond should be logical (TRUE or FALSE)')
-  assert_that(is.logical(sympt),
+  assertthat::assert_that(is.logical(sympt),
               msg = 'sympt should be logical (TRUE or FALSE)')
-  assert_that(all(seir_status %in% names(seir_levels)),
+  assertthat::assert_that(all(seir_status %in% names(seir_levels)),
               msg = 'seir_status should be "S", "E", "I", or "R"' )
   if (fix_sympt) {
     sympt <- ifelse(seir_status == "I", sympt, FALSE)
   }
-  assert_that(all(seir_status == "I" | ! sympt),
+  assertthat::assert_that(all(seir_status == "I" | ! sympt),
               msg = "It should not be possible to be sympt and not infected.")
   seir_status <-  ordered(seir_status, levels= names(seir_levels))
-  agents <- tibble(age = age, age_bkt = get_age_bracket(age),
+  agents <- tibble::tibble(age = age, age_bkt = get_age_bracket(age),
                    sex = sex, med_cond = med_cond,
                    sympt = sympt,
                    seir = seir_status, id = seq_along(age),
                    ticks = 0) %>%
-    mutate_if(is.logical, ~1 + as.integer(.))
+    dplyr::mutate_if(is.logical, ~1 + as.integer(.))
   invisible(agents)
 }
 

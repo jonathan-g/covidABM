@@ -7,10 +7,11 @@ library(rlang)
 
 seir_levels <- c("S" = 1, "E" = 2, "I" = 3, "R" = 4)
 
-age_brackets <- tibble(lower = c(0, 20, 30, 40, 50, 60, 70, 80),
+age_brackets <- tibble::tibble(lower = c(0, 20, 30, 40, 50, 60, 70, 80),
                        upper = c(lower, Inf) %>% lead() %>% head(-1),
                        bracket = seq_along(lower) %>%
-                         ordered(labels = str_c(lower, upper, sep = "-")))
+                         ordered(labels = stringr::str_c(lower, upper,
+                                                         sep = "-")))
 
 source("generate_test_probs.R")
 source("../R/probs.R")
@@ -21,8 +22,10 @@ trans_cfg <- create_transition_cfg(NULL)
 
 probs <- build_prob_matrix(prob_cfg)
 
-e_df <- trans_cfg %>% filter(compartment == "E") %>% select(-compartment)
-i_df <- trans_cfg %>% filter(compartment == "I") %>% select(-compartment)
+e_df <- trans_cfg %>% dplyr::filter(compartment == "E") %>%
+  dplyr::select(-compartment)
+i_df <- trans_cfg %>% dplyr::filter(compartment == "I") %>%
+  dplyr::select(-compartment)
 e_trans <- build_transition_matrix(e_df)
 i_trans <- build_transition_matrix(i_df)
 trans <- list(e = e_trans, i = i_trans)

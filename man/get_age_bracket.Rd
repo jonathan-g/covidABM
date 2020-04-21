@@ -18,4 +18,5 @@ Convert an age (in years) to a bracket.
 \examples{
 get_age_bracket(21)
 get_age_bracket(c(10, 20, 21, 25, 29, 30, 31, 39, 40, 41))
+
 }

@@ -40,7 +40,7 @@ on the ring;  4 = connect to both neighbors and their neighbors, etc.).}
 random node..}
 }
 \value{
-A model, as returned by \link{setup_model}
+A model, as returned by \code{\link[=setup_model]{setup_model()}}
 }
 \description{
 FUNCTION_DESCRIPTION

@@ -16,8 +16,9 @@
 #' @param dim Dimension of the network. Should be 1. The number of
 #'   vertices is
 #'   \ifelse{html}{\out{<i>N</i><sup><i>d</i></sup>}}{\eqn{\eqn{N^d}}{_N^d_)}},
-#'   where _N_ is the number of agents (`nrow(agents)`) and _d_ is the dimension.
-#'   For multidimensional arrays, neighborhoods are calaculated along all axes.
+#'   where _N_ is the number of agents (`nrow(agents)`) and _d_ is the
+#'   dimension. For multidimensional arrays, neighborhoods are calaculated along
+#'   all axes.
 #' @param nei Network distance (around a ring or hyper-torus) that will be
 #'   connected by neighbor links. If `nei` is 2, then the small world
 #'   network is initialized with edges to neighbors and neighbors-of-neighbors
@@ -30,21 +31,24 @@
 #' @return An iGraph network, where vertices have attributes corresponding to
 #'   the columns of the `agents` data frame.
 #' @examples
+#' \dontrun{
 #' n_agt <- 20
-#' agents <- create_agends(age = runif(n_agt, max = 90),
+#' agents <- create_agents(age = runif(n_agt, max = 90),
 #'   sex = sample(c("F", "M"), n_agt, replace = TRUE),
-#'   med_cond = rbernoulli(n_agt, 0.20),
+#'   med_cond = purrr::rbernoulli(n_agt, 0.20),
 #'   seir_status = sample(c("S", "E", "I", "R"), replace = TRUE,
 #'     prob = c(0.9, 0.05, 0.05, 0.0)),
-#'   sympt = rbernoulli(n_agt, 0.5))
+#'   sympt = purrr::rbernoulli(n_agt, 0.5))
 #' network <- create_network(agents, 1, 5, 0.05)
+#' }
 #' @export
 create_network <- function(agents, dim, nei, p) {
-  assert_that(is.data.frame(agents))
-  agents <- agents %>% arrange(id)
-  nwk <- sample_smallworld(dim, nrow(agents), nei, p)
+  assertthat::assert_that(is.data.frame(agents))
+  agents <- agents %>% dplyr::arrange(.data$id)
+  nwk <- igraph::sample_smallworld(dim, nrow(agents), nei, p)
   for(n in names(agents)) {
-    nwk <- set_vertex_attr(nwk, name = n, value = purrr::simplify(agents[,n]))
+    nwk <- igraph::set_vertex_attr(nwk, name = n,
+                                   value = purrr::simplify(agents[,n]))
   }
   invisible(nwk)
 }
@@ -67,23 +71,24 @@ infect <- function(network, prob) {
   level_s <- get_seir_level("S")
   level_e <- get_seir_level("E")
   level_i <- get_seir_level("I")
-  v <- V(network)
+  v <- igraph::V(network)
   i_vertices <- v[v$seir == level_i]
-  s_neighbors <- adjacent_vertices(network, i_vertices, mode = "all") %>%
-    map(~.x[.x$seir == level_s])
-  # message("length s_neighbors = ", map_int(s_neighbors, length) %>%
-  #           str_c(collapse = ", "))
+  s_neighbors <- igraph::adjacent_vertices(network, i_vertices,
+                                           mode = "all") %>%
+    purrr::map(~.x[.x$seir == level_s])
+  # message("length s_neighbors = ", purrr::map_int(s_neighbors, length) %>%
+  #          stringr::str_c(collapse = ", "))
   for (i in seq_along(i_vertices)) {
     iv <- i_vertices[[i]]
     neighbors <- s_neighbors[[i]]
     neighbors <- neighbors[neighbors$seir == 1]
-    g_sn <<- s_neighbors
+    # g_sn <<- s_neighbors
     if (length(neighbors) > 0) {
       i_probs <- get_prob(iv, neighbors, prob)
       # With probability i_probs, susceptible neighbors transition to exposed
-      newly_infected <- neighbors[rbernoulli(length(i_probs), i_probs)]
-      vertex_attr(network, "seir", newly_infected) <- level_e
-      vertex_attr(network, "ticks", newly_infected) <- 0
+      newly_infected <- neighbors[purrr::rbernoulli(length(i_probs), i_probs)]
+      igraph::vertex_attr(network, "seir", newly_infected) <- level_e
+      igraph::vertex_attr(network, "ticks", newly_infected) <- 0
       infected <- infected + length(newly_infected)
       # if (any(vertex_attr(network, "seir", neighbors) == level_e)) {
       #   message("Infected ",
@@ -91,10 +96,10 @@ infect <- function(network, prob) {
       #           " neighbors, ", length(newly_infected), " newly infected.")
       # }
       # message("i = ", i, ", infected = ", infected)
-      # s_neighbors <- map(s_neighbors, ~.x[!.x %in% newly_infected])
+      # s_neighbors <- purrr::map(s_neighbors, ~.x[!.x %in% newly_infected])
       #
-      # message("length s_neighbors = ", map_int(s_neighbors, length) %>%
-      #         str_c(collapse = ", "))
+      # message("length s_neighbors = ", purrr::map_int(s_neighbors, length) %>%
+      #        stringr::str_c(collapse = ", "))
     }
   }
   message(infected, " new transmissions.")

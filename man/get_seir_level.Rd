@@ -17,5 +17,6 @@ Translate a character SEIR status into an integer index equivalent to the
 factor level
 }
 \examples{
-get_seir_level("I")
+  get_seir_level("I")
+
 }

@@ -17,4 +17,5 @@ Translate an integer index to an SEIR factor
 }
 \examples{
 decode_seir(3)
+
 }
