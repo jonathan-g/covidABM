@@ -33,4 +33,5 @@
   assign("trans", trans, envir = .covidABM)
   assign("seir_levels", seir_levels, envir = .covidABM)
   assign("age_brackets", age_brackets, envir = .covidABM)
+  assign("tracing", FALSE, envir = .covidABM)
 }
