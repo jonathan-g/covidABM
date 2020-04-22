@@ -57,10 +57,8 @@ build_transition_matrix <- function(trans_df) {
 #' @export
 get_transition <- function(agent, transitions) {
   idx <- function(obj, ...) { obj[...] }
-  indices <- list(age_bkt = agent$age_bkt, sex = agent$sex,
-       med_cond = agent$med_cond,
-       sympt = agent$sympt) %>%
-   tibble::as_tibble() # %>% dplyr::mutate_if(is.logical, ~1 + as.integer(.x))
+  indices <- tibble::tibble(age_bkt = agent$age_bkt, sex = agent$sex,
+                            med_cond = agent$med_cond, sympt = agent$sympt)
   locs <- purrr::pmap_dbl(dplyr::mutate(indices, var = 1),
                           idx, obj = transitions)
   scales <- purrr::pmap_dbl(dplyr::mutate(indices, var = 2),

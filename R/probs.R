@@ -64,12 +64,12 @@ get_prob <- function(agent, neighbors, probs) {
   # g_agt <<- agent
   # g_nbrs <<- neighbors
   idx <- function(obj, ...) { obj[...] }
-  list(sub_age_bkt = neighbors$age_bkt, sub_sex = neighbors$sex,
-       sub_med_cond = neighbors$med_cond,
-       agt_age_bkt = agent$age_bkt, agt_sex = agent$sex,
-       agt_sympt = agent$sympt) %>%
-    tibble::as_tibble() %>% # dplyr::mutate_if(is.logical, ~1 + as.integer(.x)) %>%
-    purrr::pmap_dbl(idx, obj = probs)
+  nbr_ct <- length(neighbors)
+  params <- list(sub_age_bkt = neighbors$age_bkt,
+                 sub_sex = neighbors$sex,
+                 sub_med_cond = neighbors$med_cond,
+                 agt_age_bkt = rep_len(agent$age_bkt, nbr_ct),
+                 agt_sex = rep_len(agent$sex, nbr_ct),
+                 agt_sympt = rep_len(agent$sympt, nbr_ct))
+  purrr::pmap_dbl(params, idx, obj = probs)
 }
-
-
