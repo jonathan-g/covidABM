@@ -1,5 +1,35 @@
 destination: docs
 reference:
-- title: "An agent-based model of COVID-19 transmission"
+- title: "High-level model interface"
   desc: >
-    Simulate the spread of COVID-19 across social networks.
+    Generate a model and run it
+- contents:
+  - setup_model
+  - setup_test_model
+  - run_model
+- title: "Low-level model interface"
+  desc: >
+    Manipulate details of agent and network creation, and running.
+- contents:
+  - create_agents
+  - create_network
+  - generate_agent_params
+  - tick
+  - infect
+- title: Very low-level interface
+  desc: >
+    Access details of model parameters
+- contents:
+  - get_prob
+  - get_transition
+  - get_seir_level
+  - get_age_bracket
+- title: "Set up model parameters"
+  desc: >
+    Create parameter sets or read them from disk.
+- contents:
+  - build_prob_matrix
+  - build_transition_matrix
+  - read_probs
+  - read_trans
+  - decode_seir
