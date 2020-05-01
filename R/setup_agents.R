@@ -103,7 +103,6 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
   } else {
     stop("Invalid type for p_sympt")
   }
-  sympt <- ifelse(seir == "I", sympt, FALSE)
 
   invisible(list(age = ages, sex = sex, seir = seir,
                  med_cond = med_cond, sympt = sympt))
@@ -147,12 +146,20 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
 #' @export
 setup_model <- function(agent_count, age_dist, p_female,
                         seir_dist, p_med_cond, p_symptomatic,
-                        neighbors, p_rewire, probs = NULL, trans = NULL) {
-  if (is.null(probs)) {
-    probs <- .covidABM$probs
+                        neighbors, p_rewire, trans_df = NULL, prog_df = NULL) {
+  if (is.null(trans_df)) {
+    trans_df <- .covidABM$trans_df
   }
-  if (is.null(trans)) {
-    trans <- .covidABM$trans
+  if (is.null(prog_df)) {
+    prog_df <- .covidABM$prog_df
+  }
+
+
+  if (is.integer(trans_df$age_bkt)) {
+    trans_df <- trans_df[, age_bkt := .covidABM$age_brackets$bracket[age_bkt]]
+  }
+  if (is.integer(prog_df$age_bkt)) {
+    prog_df <- prog_df[, age_bkt := .covidABM$age_brackets$bracket[age_bkt]]
   }
 
   distr <- generate_agent_params(agent_count, age_dist, p_female,
@@ -161,10 +168,19 @@ setup_model <- function(agent_count, age_dist, p_female,
                           seir_status = distr$seir,
                           med_cond = distr$med_cond, sympt = distr$sympt,
                           fix_sympt = TRUE)
-  network <- create_network(agents, 1, neighbors, p_rewire)
 
-  invisible(list(agts = agents, nw = network,
-                 probs = probs, transitions = trans))
+  home <- create_network(agents, nw_type = "home", nw_frequency = 5,
+                                nw_intensity = 1.0, topology = "small world",
+                                nei = 2, p = 0.05)
+  social <- create_network(agents, nw_type = "social", nw_frequency = 1,
+                           nw_intensity = 0.25, topology = "Barabasi Albert",
+                           nei = 5, p = 0.10)
+  work <- create_network(agents, nw_type = "social", nw_frequency = 3,
+                           nw_intensity = 0.5, topology = "Barabasi Albert",
+                           nei = 5, p = 0.10)
+  networks <- list(home = home, work = work, social = social)
+
+  invisible(list(agts = agents, nws = networks))
 }
 
 

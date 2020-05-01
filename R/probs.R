@@ -18,7 +18,27 @@
 #' @examples
 #' # ADD_EXAMPLES_HERE
 #' @export
-build_prob_matrix <- function(prob_df) {
+build_shed_matrix <- function(prob_df) {
+  age_brackets <- get("age_brackets", .covidABM)
+  dims <- c(age = max(age_brackets$bracket),
+            sex = 2,
+            sympt = 2)
+  sex <- factor(c("F", "M"))
+  sympt <- factor(c("yes", "no"))
+  med_cond <- factor(c("yes", "no"))
+  prob_df <- prob_df %>%
+    dplyr::select(.data$sympt, .data$sex, .data$age_bkt,
+                  .data$prob) %>%
+    dplyr::arrange(.data$sympt, .data$sex, .data$age_bkt)
+  probs <- array(prob_df$prob, dim = dims,
+                 dimnames = list(stringr::str_c("age_", seq(dims[' age'])),
+                                stringr::str_c("sex_", levels(sex)),
+                                stringr::str_c("sympt_a_", levels(sympt))))
+  invisible(probs)
+}
+
+
+build_susc_matrix <- function(prob_df) {
   age_brackets <- get("age_brackets", .covidABM)
   dims <- c(sub_age = max(age_brackets$bracket),
             sub_sex = 2,
@@ -36,11 +56,11 @@ build_prob_matrix <- function(prob_df) {
                    .data$sub_med_cond, .data$sub_sex, .data$sub_age_bkt)
   probs <- array(prob_df$prob, dim = dims,
                  dimnames = list(stringr::str_c("age_s_", seq(dims['sub_age'])),
-                                stringr::str_c("sex_s_", levels(sex)),
-                                stringr::str_c("cond_s_", levels(med_cond)),
-                                stringr::str_c("age_a_", seq(dims['agt_age'])),
-                                stringr::str_c("sex_a_", levels(sex)),
-                                stringr::str_c("sympt_a_", levels(sympt))))
+                                 stringr::str_c("sex_s_", levels(sex)),
+                                 stringr::str_c("cond_s_", levels(med_cond)),
+                                 stringr::str_c("age_a_", seq(dims['agt_age'])),
+                                 stringr::str_c("sex_a_", levels(sex)),
+                                 stringr::str_c("sympt_a_", levels(sympt))))
   invisible(probs)
 }
 

@@ -1,35 +1,31 @@
-#' Build a small-world network from a set of agents
+#' Build a network from a set of agents
 #'
-#' Given a set of agents, build a small-world network and give each vertex the
+#' Given a set of agents, build a network and give each vertex the
 #' attributes of one of the agents
 #'
-#' @param agents A data frame where each row is an agent and the columns
-#'   represent:
-#'   * `age`: the age in years
-#'   * `sex`: The sex (a factor with levels "M" and "F")
-#'   * `med_cond`: Logical, does the agent have a pre-existing medical
-#'     condition?
-#'   * `seir_status`: An ordered factor indicating SEIR status ("S", "E", "I",
-#'     or "R")
-#'   * `sympt`: Logical, if the agent is infected (`seir_status` "I"),
-#'     are they exhibiting symptoms of COVID-19?
-#' @param dim Dimension of the network. Should be 1. The number of
-#'   vertices is
-#'   \ifelse{html}{\out{<i>N</i><sup><i>d</i></sup>}}{\eqn{\eqn{N^d}}{_N^d_)}},
-#'   where _N_ is the number of agents (`nrow(agents)`) and _d_ is the
-#'   dimension. For multidimensional arrays, neighborhoods are calaculated along
-#'   all axes.
+#' @param agents A data.table where each row is an agent and the columns
+#'   include a variable "id" that serves as a unique ID for the agent.
+#' @param nw_type A description of the type of network. This
+#'   is purely descriptive and doesn't affect the creation of the network.
+#' @param nw_frequency The mean frequency of contact (per time step) for this
+#'   kind of network contact.
+#' @param nw_intensity The intensity of contact for this kind of network
+#'   contact. Should be a real number between 0 and 1 indicating the intensity
+#'   of close personal contact.
 #' @param nei Network distance (around a ring or hyper-torus) that will be
-#'   connected by neighbor links. If `nei` is 2, then the small world
+#'   connected by neighbor links in small-world networks.
+#'   If `nei` is 2, then the small world
 #'   network is initialized with edges to neighbors and neighbors-of-neighbors
 #'   in each direction and dimension.
+#'   For preferential attachment (or BA) networks, nei is the number of edges
+#'   to add in each time step while constructing the network.
 #' @param p The probability of rewiring an edge. Small worlds start out with
 #'   dense connections between neighbors (up to separation-degree `nei`),
 #'   and then a random subset, chosen with probabilty `p` is rewired to random
 #'   vertices.
 #'
-#' @return An iGraph network, where vertices have attributes corresponding to
-#'   the columns of the `agents` data frame.
+#' @return A list of the network and a data table with one row corresponding to
+#'   each edge of the network.
 #' @examples
 #' \dontrun{
 #' n_agt <- 20
@@ -42,72 +38,52 @@
 #' network <- create_network(agents, 1, 5, 0.05)
 #' }
 #' @export
-create_network <- function(agents, dim, nei, p) {
+create_network <- function(agents, nw_type, nw_frequency, nw_intensity,
+                           topology, nei, p,
+                           ba_power = 1, ba_dist = NULL, ba_seq = NULL,
+                           ba_zero_appeal = 1, ba_out_pref = FALSE) {
   assertthat::assert_that(is.data.frame(agents))
-  agents <- agents %>% dplyr::arrange(.data$id)
-  nwk <- igraph::sample_smallworld(dim, nrow(agents), nei, p)
-  for(n in names(agents)) {
-    nwk <- igraph::set_vertex_attr(nwk, name = n,
-                                   value = purrr::simplify(agents[,n]))
+  agents <- as.data.table(agents)
+  # agents <- agents[order(id)]
+  topology <- stringr::str_to_lower(topology) %>%
+    stringr::str_replace_all("[^a-z]", "")
+  if (topology %in% c("smallworld", "strogatzwatts", "sw")) {
+    nwk <- igraph::sample_smallworld(dim = 1, size = nrow(agents),
+                                     nei = nei, p = p)
+  } else if (topology %in% c("ba", "barabasialbert", "preferentialattachment",
+                             "scaleinvariant")) {
+    nwk <- igraph::sample_pa(nrow(agents), power = ba_power, m = nei,
+                             out.dist = ba_dist, out.seq = ba_seq,
+                             out.pref = ba_out_pref,
+                             zero.appeal = ba_zero_appeal,
+                             directed = FALSE)
+  } else {
+    stop("Unknown topology: ", topology)
   }
-  invisible(nwk)
+  nwk <- igraph::set_vertex_attr(nwk, name = "id",
+                                 value = base::sample(agents$id, nrow(agents),
+                                                      FALSE))
+  # nwk <- igraph::set_vertex_attr(nwk, name = "foo", value = agents$id * 100 + 1)
+  v <- igraph::V(nwk)
+  e <- igraph::E(nwk)
+  hid <- igraph::head_of(nwk, e)$id
+  tid <- igraph::tail_of(nwk, e)$id
+  # hid <- igraph::head_of(nwk, e)$foo
+  # tid <- igraph::tail_of(nwk, e)$foo
+  # n <- igraph::adjacent_vertices(nwk, v)
+  neighbors <- data.table(head = hid, tail = tid,
+                          edge_type = rep_len(nw_type, length(hid)),
+                          freq = nw_frequency, strength = nw_intensity)
+  invisible(list(network = nwk, neighbors = neighbors))
 }
 
-
-#' Propagate infections on the network
-#'
-#' For each infected node on the network, find susceptible neighbors and
-#' probabilistically spread the infection.
-#'
-#' @param network An igraph network, generated by `create_network`
-#' @param prob A probability matrix generated by `build_prob_matrix`
-#' @param tracing Print informational messages about how many people were newly
-#'   infected.
-#'
-#' @return A modified network graph after propagating the infections.
-#' @examples
-#' # ADD_EXAMPLES_HERE
-#' @export
-infect <- function(network, prob, tracing = FALSE) {
-  infected <- 0
-  level_s <- get_seir_level("S")
-  level_e <- get_seir_level("E")
-  level_i <- get_seir_level("I")
-  v <- igraph::V(network)
-  i_vertices <- v[v$seir == level_i]
-  s_neighbors <- igraph::adjacent_vertices(network, i_vertices,
-                                           mode = "all") %>%
-    purrr::map(~.x[.x$seir == level_s])
-  # message("length s_neighbors = ", purrr::map_int(s_neighbors, length) %>%
-  #          stringr::str_c(collapse = ", "))
-  for (i in seq_along(i_vertices)) {
-    iv <- i_vertices[[i]]
-    neighbors <- s_neighbors[[i]]
-    neighbors <- neighbors[neighbors$seir == 1]
-    # g_sn <<- s_neighbors
-    if (length(neighbors) > 0) {
-      i_probs <- get_prob(iv, neighbors, prob)
-      # With probability i_probs, susceptible neighbors transition to exposed
-      newly_infected <- neighbors[purrr::rbernoulli(length(i_probs), i_probs)]
-      igraph::vertex_attr(network, "seir", newly_infected) <- level_e
-      igraph::vertex_attr(network, "ticks", newly_infected) <- 0
-      infected <- infected + length(newly_infected)
-      # if (any(vertex_attr(network, "seir", neighbors) == level_e)) {
-      #   message("Infected ",
-      #           sum(vertex_attr(network, "seir", neighbors) == level_e),
-      #           " neighbors, ", length(newly_infected), " newly infected.")
-      # }
-      # message("i = ", i, ", infected = ", infected)
-      # s_neighbors <- purrr::map(s_neighbors, ~.x[!.x %in% newly_infected])
-      #
-      # message("length s_neighbors = ", purrr::map_int(s_neighbors, length) %>%
-      #        stringr::str_c(collapse = ", "))
-    }
-  }
-  if (tracing || .covidABM$tracing) {
-    message(infected, " new transmissions.")
-  }
-  # gs_neighbors <<- s_neighbors
-  invisible(network)
-}
-
+# unnest_neighbors <- function(tbl, nbr_col = "neighbors") {
+#   col <- ensyms(nbr_col)
+#   clnms <- syms(setdiff(colnames(tbl), as.character(col)))
+#   tbl <- eval(
+#     expr(tbl[, as.character(unlist(!!!col)), by = list(!!!clnms)])
+#   )
+#
+#   colnames(tbl) <- c(as.character(clnms), as.character(col))
+#   invisible(tbl)
+# }

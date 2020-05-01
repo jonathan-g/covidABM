@@ -1,0 +1,239 @@
+---
+title: "An Agent-Based Model of COVID-19 Transmission"
+subtitle: "An Overview-Design Concepts-Details Description"
+author: "Jonathan M. Gilligan and Kelsea B. Best"
+date: "`r Sys.Date()`"
+latexfonts: 
+  - package: newtxmath
+    options: 
+      - cmintegrals
+      - cmbraces
+  - package: ebgaramond-maths
+  - package: nimbusmononarrow
+output: 
+ html_document: 
+   toc: true
+   number_sections: true
+bibliography: "covid-abm.bib"
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+library(tint)
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+options(htmltools.dir.version = FALSE)
+```
+# Introduction
+
+This model is a simple agent-based model of COVID-19 transmission in a 
+population connected by social networks. The transmission of COVID-19 is 
+modeled using a compartmental SEIR model in which individual agents progress 
+through disease stages of susceptible, exposed, infected or recovered. Agents 
+are connected to one another through non-spatial social networks which are 
+modeled as Watts-Strogatz small world networks [@watts:collective.dynamics:1998] 
+or Barab\'asi-Albert scale-invariant networks 
+[@albert:statistical.mechanics:2002; @barabasi:emergence.scaling:1999]. 
+The disease may be transmitted through these network 
+links.  
+
+# Model Overview
+
+## Purpose
+
+The purpose of this model is to use agent-based modeling to simulate the spread 
+of COVID-19 in communities. The model is used to simulate the effects of 
+different types of network connectivity (including changes to the network 
+connections through interventions such as "social isolation") on the spread of
+infections.
+
+The model does not attempt to provide reliable predictions of the future spread
+of disease, but focuses on making comparisons between different patterns of 
+social network connections.
+
+## Entities, State Variables, and Scales
+
+There are two kinds of entities in this model: **agents** and **links**.
+
+### Agents 
+
+**Agents** represent individual people. Each agent is initialized with the 
+following characteristics:
+
+* _age_, which is represented as both a number and as a bracket.
+* _sex_, a binary variable representing male or female sex phenotype. This 
+  model does not currently treat intersex individuals.
+* _comorbidity_, a binary variable that represents whether the indivisual
+  has a comorbidity that could complicate susceptibility to new infections.
+* _symptomatic_, a binary variable that controls whether the individaul will be
+  symptomatic if they are infected. This is important, because symptomatic 
+  individuals are reported to shed greater amounts of virus than asymptomatic 
+  ones.  Future variations on this model may also account for behavioral 
+  differences (symptomatic individuals may be more likely to self-quarantine or
+  seek medical attention, whereas asymptomatic ones may continue to interact
+  with others and thus spread the disease)
+* _health status_, an ordinal factor that represents the status of the individual
+  within a four-compartment _SEIR_ model, where _S_ represents _susceptible_
+  individuals, _E_ represents _exposed_ individuals who are incubating an infection
+  but are not yet infectious, _I_ represents _infectious_ individuals who can
+  spread the disease, and _R_ represents _recovered_ individuals who are no 
+  longer contagious and who have acquired immunity against being reinfected.
+* _ticks_, an integer representing the number of time steps since the individual 
+  entered the current _health status_. This affects the progression from 
+  _E_ to _I_ and from _I_ to _R_.
+* _shedding factor_, a real number (positive or negative) that represents the 
+  relative degree of viral shedding (e.g., symptomatic individuals are reported
+  to have higher shedding factors than asymptomatic ones).
+* _susceptibility factor_, a real number (positive or negative) that represents
+  the relative susceptibility of an individual to contracting an infection when
+  exposed to the virus.
+* _EI scale_, _EI shape_, _IR scale_, and _IR shape_, real numbers that 
+  parameterize progress of the disease. See further details under _Submodels_
+
+### Links
+
+*Links** represent social connections. These can be _household_ 
+connections (people who live together), _social_ connections of people who 
+live in different households, but are connected through friendship, church,
+community groups, etc., and see one another regularly, and _work_ connections.
+
+Links have parameters:
+
+* _contact frequency_, represents the mean frequency of this kind of contact,
+  in number of meetings per time step.
+* _contact intensity_, represents the intensity of close interaction (e.g., 
+  visits to a health-care professional will generally be more intense than 
+  interactions with cashiers at a store)
+
+The characteristics of the network is described in greater detail under 
+_collectives_, below.
+
+### Spatiotemporal scales
+
+This model does not explicitly represent space, and agents interact through 
+social networks rather than spatial proximity.
+
+The time step represents one day. The number of ticks in a model run can be
+specified by the user.
+
+### Environment
+
+Initially,  we will not model the environment. We will have agents connected by 
+social networks with no representation of the physical environments they inhabit. 
+Later versions will incorporate infrastructure to represent connections via 
+transportation, and spatial distributions of housing units and workplaces.
+  
+## Process Overview and Scheduling
+
+At each time step, two things happen:
+
+1. Each agent in the _E_ or _I_ state progresses stochastically toward the
+   next state (_I_ or _R_, respectively). The probability of progression 
+   may depend on the number of time steps the agent has been in this status.
+   See the _disease progression_ submodel for details.
+2. Every agent in the _I_ state stochastically infects its immediate neighbors 
+   on the network (those with whom it shares a link) who are in the _S_ status. 
+   See the _infect_ submodel for details.
+
+# Design Concepts
+
+## Basic Principles
+
+The transmission of COVID-19 is represented using a four-compartment SEIR model. 
+The SEIR model categorizes agents into _susceptible_, _exposed_, _infectious_ 
+or _recovered_. 
+
+Infection (transition from _susceptible_ to _exposed_ status) occurs 
+stochastically. At each time step, every _susceptible_ agent that is connected 
+to an _infectious_ agent by a network link has a probability of transitioning
+to an _exposed_ state. The probability depends on the characteristics of the 
+two agents and of the network link.
+
+Agents are heterogeneous, so two agents with the same age, sex, etc. can have
+different shedding and susceptibility factors. These factors are drawn at 
+random from probability distributions that are parameterized by the agent
+characteristics (age, sex, comorbidities, and symptomatic status)
+
+_Exposed_ and _infectious_ agents stochastically transition to the next stage
+(_infectious_ and _recovered_, respectively), with time-dependent probabilities 
+that follow gamma or Weibull distributions. The parameters of these 
+distributions may depend on the agent's age, sex, comorbidities, etc.
+
+## Emergence
+
+The spread of the disease emerges from individual interactions on the network.
+
+## Adaptation
+
+Currently, the agents do not adapt their behavior to changing conditions. 
+Future versions may allow agents to change their social interactions when they 
+get sick or in response to public policies, such as stay-at-home orders.
+
+## Objectives
+
+The agents do not pursue objectives.
+
+## Learning
+
+The agents do not learn.
+
+## Prediction
+
+The agents do not engage in prediction.
+
+## Sensing
+
+The agents do not currently use sensing. In the future, they may sense aspects
+of their own or other agents' health.
+
+## Interaction 
+
+Agents interact through links. These are how infections are transmitted.
+
+## Stochasticity
+
+Agent initialization is stochastic with characteristics (age, sex, 
+comorbidities, future symptomatic response to infection, shedding intensity,
+and susceptibility) drawn from distributions that can be specified at run-time.
+
+Disease progress (_E_ to _I_ and _I_ to _R_) are stochastic, with probabilities
+that vary with the amount of time an agent has been in that status.
+
+Disease transmission is stochastic. Disease is transmitted across links that 
+connect _infectious_ to _susceptible_ agents. The probability of transmission
+depends on the _shedding intensity_ of the _infectious_ agent, the 
+_susceptibility_ of the _susceptible_ agent, and the contact characteristics of 
+the link.
+
+## Collectives 
+
+Multiple overlapping social networks (household, social, and work) connect 
+agents. These networks can have different topologies that are specified at
+runtime when the agents are initialized.
+
+Currently available topologies are Strogatz-Watts _small-world_ 
+[@watts:collective.dynamics:1998]
+and Barabasi Albert _preferential attachment_
+[@albert:statistical.mechanics:2002; @barabasi:emergence.scaling:1999]. 
+The big difference between these
+is that the degree of connection is fairly uniformly distributed in the 
+Strogatz Watts model, but is very unequally distributed in Barab\'asi-Albert
+networks, with a few highly connected nodes that may be able to simulate 
+super-spreaders.
+
+## Observation
+
+At each time step we record the number of agents in each health status
+(_S_, _E_, _I_, or _R_).
+
+# Details
+
+## Initialization
+
+## Input Data
+
+## Submodels
+
+# References
+
+<div id="refs"></div>
