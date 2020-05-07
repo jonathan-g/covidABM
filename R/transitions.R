@@ -19,7 +19,7 @@ transition_prob <- function(ticks, shape, scale) {
   p
 }
 
-set_ticks <- function(n, shape, scale) {
+set_target <- function(n, shape, scale) {
   if (missing(n)) {
     n <- length(shape)
   }
@@ -48,25 +48,12 @@ progress_disease <- function(agents) {
   level_e <- get_seir_level("E")
   level_i <- get_seir_level("I")
   level_r <- get_seir_level("R")
-  agent_e <<- agents[seir == level_e,]
-  agent_i <<- agents[seir == level_i,]
-  e_to_i <<- with(agent_e,
-                  purrr::rbernoulli(transition_prob(ticks, shape = shape_ei,
-                                            scale = scale_ei)))
-  ids <- agent_e[e_to_i]$id
-  agents[id %in% ids, c("seir", "ticks") := .(level_i, 0)]
 
-  i_to_r <<- with(agent_i,
-                  purrr::rbernoulli(transition_prob(ticks, shape = shape_ir,
-                                               scale = scale_ir)))
-  ids <- agent_i[i_to_r]$id
-  agents[id %in% ids, c("seir", "ticks") := .(level_r, 0)]
+  agents[seir == level_e & target <= ticks,
+         c("seir", "ticks", "target") :=
+           .(level_i, 0, set_target(.N, shape_ir, scale_ir))]
+  agents[seir == level_i & target <= ticks,
+         c("seir", "ticks", "target") := list(level_r, 0, 0)]
 
-  # agent_e[purrr::rbernoulli(transition_prob(ticks, shape = shape_ei,
-  #                                           scale = scale_ei)),
-  #         ]$seir <- level_i
-  # agent_i[purrr::rbernoulli(transition_prob(ticks, shape = shape_ir,
-  #                                           scale = scale_ir)),
-  #         ]$seir <- level_r
   invisible(agents)
 }

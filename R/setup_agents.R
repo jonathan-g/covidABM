@@ -173,6 +173,13 @@ setup_model <- function(agent_count, age_dist, p_female,
   agents <- agents[, seir := as.integer(seir)]
   setkey(agents, id, seir)
 
+  level_e <- get_seir_level("E")
+  level_i <- get_seir_level("I")
+  agents[seir == level_e, target :=
+           set_target(.N, shape = shape_ei, scale = scale_ei)]
+  agents[seir == level_i, target :=
+           set_target(.N, shape = shape_ir, scale = scale_ir)]
+
   home <- create_network(agents, nw_type = "home", nw_frequency = 5,
                                 nw_intensity = 1.0, topology = "small world",
                                 nei = 2, p = 0.05)

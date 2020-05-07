@@ -26,7 +26,9 @@ infect <- function(agents, neighbors, x0 = -2.556) {
     dt <- dt[, infect := purrr::rbernoulli(length(p), p)]
     if (any(dt$infect)) {
       infected <- dt[infect == TRUE, .(tail)]
-      agents[id %in% infected$tail, c("seir", "ticks") := list(e_level, 0)]
+      agents[id %in% infected$tail,
+             c("seir", "ticks", "target") :=
+               list(e_level, 0, set_target(.N, shape_ei, scale_ei))]
       s_agents <- s_agents[! id %in% infected$tail]
     }
   }

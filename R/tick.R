@@ -48,14 +48,14 @@ tick <- function(model, tracing = FALSE) {
     n_r3 <<- sum(agents$seir == level_r)
 
     d_r <<- n_r2 - n_r
-    d_i <<- n_i2 + d_r - n_i
+    d_i <<- n_e - n_e2
     d_e <<- n_e3 - n_e2
 
     assertthat::assert_that(n_s2 == n_s,
                             msg = "Susceptible population should not change under disease progression.")
     assertthat::assert_that(n_s3 == n_s - d_e,
                             msg = "Susceptible population should drop by the number of new infections.")
-    assertthat::assert_that(n_r2 == n_r - d_i,
+    assertthat::assert_that(n_r2 == n_r + (n_i - n_i2) + (n_e - n_e2),
                             msg = "Recovered population should increase by the number of recoveries.")
     assertthat::assert_that(n_i3 == n_i2,
                             msg = "Number of infectious cases should not change during infect step.")

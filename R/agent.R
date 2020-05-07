@@ -98,13 +98,14 @@ create_agents <- function(age, sex, med_cond, seir_status,
   if (is.null(sympt)) {
     sympt <- purrr::pbernoulli(length(seir_status), p_sympt)
   }
-  if (is.null(ticks)) ticks <- 0
+  if (is.null(ticks)) ticks <- 0L
   seir_status <-  ordered(seir_status, levels= names(seir_levels))
   agents <- list(age = age, age_bkt = get_age_bracket(age),
                  sex = sex, med_cond = med_cond,
                  sympt = sympt,
                  seir = seir_status, id = seq_along(age),
-                 ticks = ticks)
+                 ticks = as.integer(ticks),
+                 target = 0L)
 
   agents <- as.data.table(agents)
   agents$id <- seq(nrow(agents))
