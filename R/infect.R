@@ -12,46 +12,23 @@
 #' @examples
 #' # ADD_EXAMPLES_HERE
 #' @export
-infect <- function(agents, edges, edge_params, tracing = FALSE) {
-  infected <- 0
-  level_s <- get_seir_level("S")
-  level_e <- get_seir_level("E")
-  level_i <- get_seir_level("I")
+infect <- function(agents, neighbors, x0 = -2.556) {
+  s_level <- get_seir_level("S")
+  i_level <- get_seir_level("I")
+  e_level <- get_seir_level("E")
 
-  i_agents <- agents[, seir == level_i]
-  s_neighbors <- igraph::adjacent_vertices(network, i_vertices,
-                                           mode = "all") %>%
-    purrr::map(~.x[.x$seir == level_s])
-  # message("length s_neighbors = ", purrr::map_int(s_neighbors, length) %>%
-  #          stringr::str_c(collapse = ", "))
-  for (i in seq_along(i_vertices)) {
-    iv <- i_vertices[[i]]
-    neighbors <- s_neighbors[[i]]
-    neighbors <- neighbors[neighbors$seir == 1]
-    # g_sn <<- s_neighbors
-    if (length(neighbors) > 0) {
-      i_probs <- get_prob(iv, neighbors, prob)
-      # With probability i_probs, susceptible neighbors transition to exposed
-      newly_infected <- neighbors[purrr::rbernoulli(length(i_probs), i_probs)]
-      igraph::vertex_attr(network, "seir", newly_infected) <- level_e
-      igraph::vertex_attr(network, "ticks", newly_infected) <- 0
-      infected <- infected + length(newly_infected)
-      # if (any(vertex_attr(network, "seir", neighbors) == level_e)) {
-      #   message("Infected ",
-      #           sum(vertex_attr(network, "seir", neighbors) == level_e),
-      #           " neighbors, ", length(newly_infected), " newly infected.")
-      # }
-      # message("i = ", i, ", infected = ", infected)
-      # s_neighbors <- purrr::map(s_neighbors, ~.x[!.x %in% newly_infected])
-      #
-      # message("length s_neighbors = ", purrr::map_int(s_neighbors, length) %>%
-      #        stringr::str_c(collapse = ", "))
+  i_agents <- agents[seir == i_level, .(id, x_shed)]
+  s_agents <- agents[seir == s_level, .(id, x_susc)]
+  for (n in neighbors) {
+    dt <- merge(i_agents, n, by.x = "id", by.y = "head")
+    dt <- merge(dt, s_agents, by.x = "tail", by.y = "id")
+    dt <- dt[, p := plogis(x0 + x_shed + x_susc + strength)]
+    dt <- dt[, infect := purrr::rbernoulli(length(p), p)]
+    if (any(dt$infect)) {
+      infected <- dt[infect == TRUE, .(tail)]
+      agents[id %in% infected$tail, c("seir", "ticks") := list(e_level, 0)]
+      s_agents <- s_agents[! id %in% infected$tail]
     }
   }
-  if (tracing || .covidABM$tracing) {
-    message(infected, " new transmissions.")
-  }
-  # gs_neighbors <<- s_neighbors
-  invisible(network)
+  invisible(agents)
 }
-

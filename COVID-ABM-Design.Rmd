@@ -3,15 +3,15 @@ title: "An Agent-Based Model of COVID-19 Transmission"
 author: "Jonathan M. Gilligan and Kelsea B. Best"
 date: "`r Sys.Date()`"
 output:
-  html_document:
-    toc: yes
-    number_sections: yes
   pdf_document: 
     toc: yes
     number_sections: yes
     keep_tex: yes
     includes:
       in_header: "odd-header.sty"
+  html_document:
+    toc: yes
+    number_sections: yes
 subtitle: An Overview-Design Concepts-Details Description
 bibliography: covid-abm.bib
 link-citations: yes
@@ -28,7 +28,7 @@ modeled using a compartmental SEIR model in which individual agents progress
 through disease stages of susceptible, exposed, infected or recovered. Agents 
 are connected to one another through non-spatial social networks which are 
 modeled as Watts-Strogatz small world networks [@watts:collective.dynamics:1998] 
-or Barab\'asi-Albert scale-invariant networks 
+or Barab&aacute;si-Albert scale-invariant networks 
 [@albert:statistical.mechanics:2002; @barabasi:emergence.scaling:1999]. 
 The disease may be transmitted through these network 
 links.  
@@ -88,7 +88,7 @@ following characteristics:
 
 ### Links
 
-*Links** represent social connections. These can be _household_ 
+**Links** represent social connections. These can be _household_ 
 connections (people who live together), _social_ connections of people who 
 live in different households, but are connected through friendship, church,
 community groups, etc., and see one another regularly, and _work_ connections.
@@ -209,11 +209,11 @@ runtime when the agents are initialized.
 
 Currently available topologies are Strogatz-Watts _small-world_ 
 [@watts:collective.dynamics:1998]
-and Barabasi Albert _preferential attachment_
+and Barab&aacute;si Albert _preferential attachment_
 [@albert:statistical.mechanics:2002; @barabasi:emergence.scaling:1999]. 
 The big difference between these
 is that the degree of connection is fairly uniformly distributed in the 
-Strogatz Watts model, but is very unequally distributed in Barab\'asi-Albert
+Strogatz Watts model, but is very unequally distributed in Barab&aacute;si-Albert
 networks, with a few highly connected nodes that may be able to simulate 
 super-spreaders.
 
@@ -233,7 +233,7 @@ Agents are initialized using user-specified distributions of age, sex,
 comorbidities, and whether they will become symptomatic if they are infected.
 
 Networks are initialized at runtime using either Strogatz-Watts small-world
-or Barab\'asi-Albert preferential attachment topologies.
+or Barab&aacute;si-Albert preferential attachment topologies.
 
 ## Input Data
 
@@ -247,13 +247,15 @@ from the initialization.
 Infection probabilities are a function of shedding intensity, susceptibility,
 and the frequency and intensity of contact:
 
-$$P_{\text{infection}} = (p_0)^{\text{contact frequency}},$$
+$$P_{\text{infection}} = 1 - (1 - p_0)^{\text{contact frequency}},$$
 where
 $$
 p_0 = \text{logit}^{-1}\left( x_0 + f_{\text{shedding}, \text{source}} + 
   f_{\text{susceptibility}, \text{subject}} + f_{\text{contact intensity}} \right),
 $$
 
+* $x_0$ is a baseline infection probability parameter, which is then 
+  modified up or down by the following factors:
 * $f_{\text{shedding}, \text{source}}$ represents the intensity of viral 
   shedding by the infectious contact,  accounting for things like whether the 
   source is symptomatic or asymptomatic.

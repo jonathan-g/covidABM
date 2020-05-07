@@ -133,5 +133,6 @@ set_agent_probs <- function(agents, transmission_params, progression_params) {
                        rnorm(.N, mu_susc, sigma_susc)
                      )
   ]
+  agents <- agents[, ! c("mu_shed", "mu_susc", "sigma_shed", "sigma_susc")]
   invisible(agents)
 }

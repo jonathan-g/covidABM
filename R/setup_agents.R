@@ -169,6 +169,10 @@ setup_model <- function(agent_count, age_dist, p_female,
                           med_cond = distr$med_cond, sympt = distr$sympt,
                           fix_sympt = TRUE)
 
+  agents <- set_agent_probs(agents, trans_df, prog_df)
+  agents <- agents[, seir := as.integer(seir)]
+  setkey(agents, id, seir)
+
   home <- create_network(agents, nw_type = "home", nw_frequency = 5,
                                 nw_intensity = 1.0, topology = "small world",
                                 nei = 2, p = 0.05)
@@ -178,9 +182,14 @@ setup_model <- function(agent_count, age_dist, p_female,
   work <- create_network(agents, nw_type = "social", nw_frequency = 3,
                            nw_intensity = 0.5, topology = "Barabasi Albert",
                            nei = 5, p = 0.10)
+  setkey(home$neighbors,   head, tail)
+  setkey(social$neighbors, head, tail)
+  setkey(work$neighbors,   head, tail)
+
   networks <- list(home = home, work = work, social = social)
 
-  invisible(list(agts = agents, nws = networks))
+  invisible(list(agts = agents, nws = networks,
+                 neighbors = purrr::map(networks, ~.x$neighbors)))
 }
 
 
