@@ -17,12 +17,25 @@
 #'   If `nei` is 2, then the small world
 #'   network is initialized with edges to neighbors and neighbors-of-neighbors
 #'   in each direction and dimension.
-#'   For preferential attachment (or BA) networks, nei is the number of edges
+#'   For preferential attachment (or BA) networks, `nei` is the number of edges
 #'   to add in each time step while constructing the network.
-#' @param p The probability of rewiring an edge. Small worlds start out with
-#'   dense connections between neighbors (up to separation-degree `nei`),
-#'   and then a random subset, chosen with probabilty `p` is rewired to random
-#'   vertices.
+#' @param p For small world networks, this is the probability of rewiring an
+#'   edge. For preferential attachment (or BA) networks, `p` is the power of
+#'   preferential attachment (1 for linear preferential attachment).
+#'
+#'   Small worlds start out with dense connections between neighbors
+#'   (up to separation-degree `nei`), and then a random subset, chosen with
+#'   robabilty `p` is rewired to random vertices.
+#'
+#'   Preferential attachment networks, start with no edges and `nei` edges
+#'   are added at each step, with the preference for attaching to another
+#'   vertex given by
+#'   \ifelse{html}{\out{<i>P<sub>i</sub> ~ k<sub>i</sub><sup>p</sup> +
+#'   a</i>}}{\deqn{P_i ~ k_i^p + a}}
+#'   where \ifelse{html}{\out{<i>k<sub>i</sub>}}{\eqn{k_i}} is the number of
+#'   edges originating at other vertices that connect to vertex _i_,
+#'   _p_ is the preferential attachment power (1 for linear preference), and
+#'   _a_ is the affinity for unconnected vertices (which we set to 1).
 #'
 #' @return A list of the network and a data table with one row corresponding to
 #'   each edge of the network.
@@ -37,22 +50,22 @@
 #'   sympt = purrr::rbernoulli(n_agt, 0.5))
 #' network <- create_network(agents, 1, 5, 0.05)
 #' }
-#' @export
+#' @keywords internal
 create_network <- function(agents, nw_type, nw_frequency, nw_intensity,
                            topology, nei, p,
-                           ba_power = 1, ba_dist = NULL, ba_seq = NULL,
+                           ba_dist = NULL, ba_seq = NULL,
                            ba_zero_appeal = 1, ba_out_pref = FALSE) {
   assertthat::assert_that(is.data.frame(agents))
   agents <- as.data.table(agents)
   # agents <- agents[order(id)]
-  topology <- stringr::str_to_lower(topology) %>%
-    stringr::str_replace_all("[^a-z]", "")
+  topology <- stringr::str_to_lower(topology)
+  topology <- stringr::str_replace_all(topology, "[^a-z]", "")
   if (topology %in% c("smallworld", "strogatzwatts", "sw")) {
     nwk <- igraph::sample_smallworld(dim = 1, size = nrow(agents),
                                      nei = nei, p = p)
   } else if (topology %in% c("ba", "barabasialbert", "preferentialattachment",
                              "scaleinvariant")) {
-    nwk <- igraph::sample_pa(nrow(agents), power = ba_power, m = nei,
+    nwk <- igraph::sample_pa(nrow(agents), power = p, m = nei,
                              out.dist = ba_dist, out.seq = ba_seq,
                              out.pref = ba_out_pref,
                              zero.appeal = ba_zero_appeal,
@@ -77,13 +90,3 @@ create_network <- function(agents, nw_type, nw_frequency, nw_intensity,
   invisible(list(network = nwk, neighbors = neighbors))
 }
 
-# unnest_neighbors <- function(tbl, nbr_col = "neighbors") {
-#   col <- ensyms(nbr_col)
-#   clnms <- syms(setdiff(colnames(tbl), as.character(col)))
-#   tbl <- eval(
-#     expr(tbl[, as.character(unlist(!!!col)), by = list(!!!clnms)])
-#   )
-#
-#   colnames(tbl) <- c(as.character(clnms), as.character(col))
-#   invisible(tbl)
-# }

@@ -4,14 +4,16 @@ library(stringr)
 library(tidyr)
 library(purrr)
 library(rlang)
+library(dtplyr)
+library(data.table)
 
 seir_levels <- c("S" = 1, "E" = 2, "I" = 3, "R" = 4)
 
 age_brackets <- tibble::tibble(lower = c(0, 20, 30, 40, 50, 60, 70, 80),
                        upper = c(lower, Inf) %>% lead() %>% head(-1),
-                       bracket = seq_along(lower) %>%
-                         ordered(labels = stringr::str_c(lower, upper,
-                                                         sep = "-")))
+                       bracket = str_c(lower, pmax(upper-1, 0), sep = "-") %>%
+                         str_replace_all("-Inf$", "+") %>%
+                         ordered(., levels = .))
 age_brackets <- as.data.frame(age_brackets)
 
 source("generate_test_probs.R")

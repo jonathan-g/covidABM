@@ -14,32 +14,50 @@
 #' @examples
 #' # ADD_EXAMPLES_HERE
 #' @export
-run_model <- function(model, ticks, progress = FALSE) {
+run_model <- function(model, ticks, progress = FALSE, check_term = TRUE) {
   progress <- as.integer(progress)
   verbose <- max(0, progress - 1)
-  ts <- data.table::data.table(tick = 0,
-               S = sum(model$agts$seir == 1),
-               E = sum(model$agts$seir == 2),
-               I = sum(model$agts$seir == 3),
-               R = sum(model$agts$seir == 4))
+  ts <- model$agts[, .(tick = 0,
+                       S = sum(seir == 1),
+                       E = sum(seir == 2),
+                       I = sum(seir == 3),
+                       R = sum(seir == 4))]
+  ts_bkt <-model$agts[, .(S = sum(seir == 1), E = sum(seir == 2),
+                          I = sum(seir == 3), R = sum(seir == 4),
+                          tick = 0),
+                      by = age_bkt][order(age_bkt)]
+  data.table::setcolorder(ts_bkt, c("tick", "age_bkt", "S", "E", "I", "R"))
+
   if (progress || .covidABM$tracing) {
-    utils::head(ts, 1) %>%
-      stringr::str_c(names(.env$.), .env$., sep = " = ", collapse = ", ") %>%
-      message()
+    msg <- stringr::str_c(utils::head(ts, 1), names(.env$.), .env$.,
+                          sep = " = ", collapse = ", ")
+    message(msg)
   }
   for (i in 1:ticks) {
     model <- tick(model, tracing = verbose)
-    row <- data.table(tick = i,
+    row <- model$agts[, .(tick = i,
                           S = sum(model$agts$seir == 1),
                           E = sum(model$agts$seir == 2),
                           I = sum(model$agts$seir == 3),
-                          R = sum(model$agts$seir == 4))
+                          R = sum(model$agts$seir == 4))]
     ts <- rbind(ts, row)
+    row_bkt <-model$agts[, .(S = sum(seir == 1), E = sum(seir == 2),
+                             I = sum(seir == 3), R = sum(seir == 4),
+                             tick = i),
+                         by = age_bkt][order(age_bkt)]
+    data.table::setcolorder(row_bkt, c("tick", "age_bkt", "S", "E", "I", "R"))
+    ts_bkt <- rbind(ts_bkt, row_bkt)
     if (progress || .covidABM$tracing) {
-      utils::head(row, 1) %>%
-        stringr::str_c(names(.env$.), .env$., sep = " = ", collapse = ", ") %>%
-        message()
+      msg <- stringr::str_c(utils::head(row, 1), names(.env$.), .env$.,
+                            sep = " = ", collapse = ", ")
+      message(msg)
+    }
+    if (row$E == 0 && row$I == 0) {
+      if (progress || .covidABM$tracing) {
+        message("No exposed or infected agents. Stopping.")
+      }
+      break
     }
   }
-  invisible(list(model = model, history = ts))
+  invisible(list(model = model, history = ts, history2 = ts_bkt))
 }
