@@ -64,7 +64,7 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
   } else if (is.character(p_female)) {
     sex = rep_len(
       stringr::str_starts(p_female, stringr::fixed("F", ignore_case = TRUE)),
-                  agent_count)
+      agent_count)
   } else if (is.integer(p_female)) {
     sex = rep_len(p_female > 0, agent_count)
   } else if (is.double(p_female)) {
@@ -95,7 +95,7 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
   } else if (is.character(p_sympt)) {
     sympt = rep_len(
       stringr::str_starts(p_sympt, stringr::fixed("F", ignore_case = TRUE)),
-                    agent_count)
+      agent_count)
   } else if (is.integer(p_sympt)) {
     sympt = rep_len(p_sympt > 0, agent_count)
   } else if (is.double(p_sympt)) {
@@ -103,7 +103,6 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
   } else {
     stop("Invalid type for p_sympt")
   }
-  sympt <- ifelse(seir == "I", sympt, FALSE)
 
   invisible(list(age = ages, sex = sex, seir = seir,
                  med_cond = med_cond, sympt = sympt))
@@ -131,13 +130,39 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
 #'   else a vector or list of symptomatic status if infectious
 #'   (logical: `TRUE` or `FALSE`). The vector will be repeated if necessary to
 #'   produce enough agents.
-#' @param neighbors The number of neighbor edges in the ring network graph to
-#'   initialize the small world network (2 = connect to both nearest neighbors
-#'   on the ring;  4 = connect to both neighbors and their neighbors, etc.).
-#' @param p_rewire The probability to rewire an edge from a neighbor to a
-#'   random node..
-#' @param probs A contagion probability matrix
-#' @param trans Disease progression transition parameters
+#' @param trans_df A data frame of parameters for disease
+#'   transmission probability distributions. Columns are:
+#'   * `age_bkt`: The age bracket (ordered factor).
+#'   * `sex`: The sex (factor with levels "M" and "F").
+#'   * `med_cond`: Has a medical condition (logical).
+#'   * `sympt`: Has symptoms of COVID-19, if infectious (logical).
+#'   * `mu_shed`: Mean of the shedding parameter distribution.
+#'   * `sigma_shed`: Scale (standard deviation) of the shedding parameter
+#'     distribution.
+#'   * `mu_susc`: Mean of the susceptibility parameter distribution
+#'   * `sigma_susc`: Scale (standard deviation) of the susceptibility parameter
+#'     distribution.
+#' @param prog_df A data frame of parameters for disease
+#'   progression probability distributions. Columns are:
+#'   * `age_bkt`: The age bracket (ordered factor).
+#'   * `sex`: The sex (factor with levels "M" and "F").
+#'   * `med_cond`: Has a medical condition (logical).
+#'   * `sympt`: Has symptoms of COVID-19, if infectious (logical).
+#'   * `shape_ei`: Shape parameter for progression from "E" to "I" compartment.
+#'   * `scale_ei`: Scale parameter for progression from "E" to "I" compartment.
+#'   * `shape_ir`: Shape parameter for progression from "I" to "R" compartment.
+#'   * `scale_ir`: Scale parameter for progression from "I" to "R" compartment.
+#' @param home_nw_params A named list with parameters for the home-contacts
+#'   network. The list should have elements:
+#'   * `freq`: The frequency of contacts in the network (contacts per day)
+#'   * `intens`: The intensity of contacts in the network
+#'   * `topol`: The topology of the network: "smallworld" or "Barabasi Albert".
+#'   * `nbrw`: The size of the neighborhood (small world) or the number of edges
+#'     to add per time step (BA).
+#'   * `p_rewire`: The probability of rewiring an edge (small world) or the
+#'     power of the preferential attachments (BA).
+#' @param social_nw_params A named list with parameters for social contacts.
+#' @param work_nw_params A named list with parameters for work contacts.
 #'
 #' @return A named list of the model: agents, network, contagion
 #'   probabilities for disease transmission, and transition probabilities for
@@ -147,24 +172,90 @@ generate_agent_params <- function(agent_count, age_dist, p_female,
 #' @export
 setup_model <- function(agent_count, age_dist, p_female,
                         seir_dist, p_med_cond, p_symptomatic,
-                        neighbors, p_rewire, probs = NULL, trans = NULL) {
-  if (is.null(probs)) {
-    probs <- .covidABM$probs
+                        trans_df = NULL, prog_df = NULL,
+                        home_nw_params = NULL, social_nw_params = NULL,
+                        work_nw_params = NULL) {
+  if (is.null(home_nw_params)) {
+    home_nw_params <- list(freq = 5, intens = 1.0,
+                           topol = "small world",
+                           nbrs = 2, p_rewire = 0.05)
   }
-  if (is.null(trans)) {
-    trans <- .covidABM$trans
+  if (is.null(social_nw_params)) {
+    social_nw_params <- list(freq = 1, intens = 0.25,
+                             topol = "Barabasi Albert",
+                             nbrs = 5, p_rewire = 0.10)
+  }
+  if (is.null(work_nw_params)) {
+    work_nw_params <- list(freq = 3, intens = 0.5,
+                           topol = "Barabasi Albert",
+                           nbrs = 5, p_rewire = 0.10)
+  }
+  if (is.null(trans_df)) {
+    trans_df <- .covidABM$trans_df
+  }
+  if (is.null(prog_df)) {
+    prog_df <- .covidABM$prog_df
+  }
+
+  # Pacify R CMD check for non-standard evaluation
+  age_bkt  <- NULL
+  id       <- NULL
+  scale_ei <- NULL
+  scale_ir <- NULL
+  seir     <- NULL
+  shape_ei <- NULL
+  shape_ir <- NULL
+  target   <- NULL
+
+  if (is.integer(trans_df$age_bkt)) {
+    trans_df <- trans_df[, age_bkt := .covidABM$age_brackets$bracket[age_bkt]]
+  }
+  if (is.integer(prog_df$age_bkt)) {
+    prog_df <- prog_df[, age_bkt := .covidABM$age_brackets$bracket[age_bkt]]
   }
 
   distr <- generate_agent_params(agent_count, age_dist, p_female,
                                  seir_dist, p_med_cond, p_symptomatic)
-  agents <- create_agents(age = distr$age, sex = distr$sex,
-                          seir_status = distr$seir,
-                          med_cond = distr$med_cond, sympt = distr$sympt,
-                          fix_sympt = TRUE)
-  network <- create_network(agents, 1, neighbors, p_rewire)
+  agents <- build_agent_df(age = distr$age, sex = distr$sex,
+                           med_cond = distr$med_cond,
+                           seir_status = distr$seir,
+                           sympt = distr$sympt,
+                           transmission_params = trans_df,
+                           progression_params = prog_df)
 
-  invisible(list(agts = agents, nw = network,
-                 probs = probs, transitions = trans))
+  agents <- agents[, seir := as.integer(seir)]
+  setkey(agents, id, seir)
+
+  level_e <- get_seir_level("E")
+  level_i <- get_seir_level("I")
+  agents[seir == level_e, target :=
+           set_target(.N, shape = shape_ei, scale = scale_ei)]
+  agents[seir == level_i, target :=
+           set_target(.N, shape = shape_ir, scale = scale_ir)]
+
+  home <- create_network(agents, nw_type = "home",
+                         nw_frequency = home_nw_params$freq,
+                         nw_intensity = home_nw_params$intens,
+                         topology = home_nw_params$topol,
+                         nei = home_nw_params$nbrw, p = home_nw_params$p_rewire)
+  social <- create_network(agents, nw_type = "social",
+                           nw_frequency = social_nw_params$freq,
+                           nw_intensity = social_nw_params$intens,
+                           topology = social_nw_params$topol,
+                           nei = social_nw_params$nbrw, p = social_nw_params$p_rewire)
+  work <- create_network(agents, nw_type = "social",
+                         nw_frequency = work_nw_params$freq,
+                         nw_intensity = work_nw_params$intens,
+                         topology = work_nw_params$topol,
+                         nei = work_nw_params$nbrw, p = work_nw_params$p_rewire)
+  setkeyv(home$neighbors,   c("head", "tail"))
+  setkeyv(social$neighbors, c("head", "tail"))
+  setkeyv(work$neighbors,   c("head", "tail"))
+
+  networks <- list(home = home, work = work, social = social)
+
+  invisible(list(agts = agents, nws = networks,
+                 neighbors = purrr::map(networks, ~.x$neighbors)))
 }
 
 
@@ -180,11 +271,6 @@ setup_model <- function(agent_count, age_dist, p_female,
 #'   These should add up to 1.0.
 #' @param p_med_cond Probability of having a medical condition.
 #' @param p_sympt Probability of being symptomatic when infectious.
-#' @param neighbors The number of neighbor edges in the ring network graph to
-#'   initialize the small world network (2 = connect to both nearest neighbors
-#'   on the ring;  4 = connect to both neighbors and their neighbors, etc.).
-#' @param p_rewire The probability to rewire an edge from a neighbor to a
-#'   random node..
 #'
 #' @return A model, as returned by [setup_model()]
 #' @examples
@@ -193,18 +279,19 @@ setup_model <- function(agent_count, age_dist, p_female,
 setup_test_model <- function(n_agents = 100, mean_age = 40.0, std_age = 20.0,
                              p_female = 0.50, p_med_cond = 0.20,
                              p_seir = c(0.99, 0.0, 0.01, 0.0),
-                             p_sympt = 0.50, neighbors = 5, p_rewire = 0.05) {
-  f_age <- ~rnorm(n = .n, mean = mean_age, sd = std_age)
-  xp <- rlang::f_rhs(f_age) %>% rlang::call_standardise() %>%
-    rlang::call_modify(mean = mean_age, sd = std_age)
+                             p_sympt = 0.50) {
+  f_age <- ~stats::rnorm(n = .n, mean = mean_age, sd = std_age)
+  xp <- rlang::f_rhs(f_age)
+  xp <- rlang::call_standardise(xp)
+  xp <- rlang::call_modify(xp, mean = mean_age, sd = std_age)
   rlang::f_rhs(f_age) <- xp
   f_seir <- ~base::sample(c("S", "E", "I", "R"), .n, TRUE, p_seir)
-  xp <- rlang::f_rhs(f_seir) %>% rlang::call_standardise() %>%
-    rlang::call_modify(prob = p_seir)
+  xp <- rlang::f_rhs(f_seir)
+  xp <- rlang::call_standardise(xp)
+  xp <- rlang::call_modify(xp, prob = p_seir)
   rlang::f_rhs(f_seir) <- xp
 
   model <- setup_model(n_agents, f_age, p_female,
-                       f_seir, p_med_cond, p_sympt,
-                       neighbors, p_rewire)
+                       f_seir, p_med_cond, p_sympt)
   invisible(model)
 }

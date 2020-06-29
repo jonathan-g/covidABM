@@ -17,40 +17,60 @@
 tick <- function(model, tracing = FALSE) {
   tracing <- as.integer(tracing)
   verbose <- max(0, tracing - 1)
+  level_s <- get_seir_level("S")
   level_e <- get_seir_level("E")
   level_i <- get_seir_level("I")
   level_r <- get_seir_level("R")
-  nw <- model$nw
 
-  igraph::vertex_attr(nw, "ticks") <- igraph::vertex_attr(nw, "ticks") + 1
+  agents <- model$agts
 
-  v <- igraph::V(nw)
-  i_nodes <- v[v$seir == level_i]
-  e_nodes <- v[v$seir == level_e]
-  i_probs <- get_transition(i_nodes, model$transitions$i)
-  e_probs <- get_transition(e_nodes, model$transitions$e)
-
-
-  i_trans_nodes <- i_nodes[purrr::rbernoulli(length(i_probs), i_probs)]
-  e_trans_nodes <- e_nodes[purrr::rbernoulli(length(e_probs), e_probs)]
-
-  if (tracing || .covidABM$tracing) {
-    message(length(i_nodes), " infected nodes: ", length(i_trans_nodes),
-            " recover.")
-    message(length(e_nodes), " exposed nodes: ", length(e_trans_nodes),
-            " become infectious.")
-    # message("i_probs = (",stringr::str_c(i_probs, collapse = ", "), ")")
-    # message("e_probs = (",stringr::str_c(e_probs, collapse = ", "), ")")
+  if (tracing) {
+    n_s <- sum(agents$seir == level_s)
+    n_e <- sum(agents$seir == level_e)
+    n_i <- sum(agents$seir == level_i)
+    n_r <- sum(agents$seir == level_r)
   }
 
-  igraph::vertex_attr(nw, "seir", i_trans_nodes) <- level_r
-  igraph::vertex_attr(nw, "ticks", i_trans_nodes) <- 0
+  agents$ticks <- agents$ticks + 1
+  agents <- progress_disease(agents)
+  if (tracing) {
+    n_s2 <- sum(agents$seir == level_s)
+    n_e2 <- sum(agents$seir == level_e)
+    n_i2 <- sum(agents$seir == level_i)
+    n_r2 <- sum(agents$seir == level_r)
+  }
 
-  igraph::vertex_attr(nw, "seir", e_trans_nodes) <- level_i
-  igraph::vertex_attr(nw, "ticks", e_trans_nodes) <- 0
+  agents <- infect(agents, model$neighbors)
+  if (tracing) {
+    n_s3 <- sum(agents$seir == level_s)
+    n_e3 <- sum(agents$seir == level_e)
+    n_i3 <- sum(agents$seir == level_i)
+    n_r3 <- sum(agents$seir == level_r)
 
-  nw <- infect(nw, model$probs, tracing = verbose)
+    d_r <- n_r2 - n_r
+    d_i <- n_e - n_e2
+    d_e <- n_e3 - n_e2
 
-  model$nw <- nw
+    assertthat::assert_that(n_s2 == n_s,
+                            msg = "Susceptible population should not change under disease progression.")
+    assertthat::assert_that(n_s3 == n_s - d_e,
+                            msg = "Susceptible population should drop by the number of new infections.")
+    assertthat::assert_that(n_r2 == n_r + (n_i - n_i2) + (n_e - n_e2),
+                            msg = "Recovered population should increase by the number of recoveries.")
+    assertthat::assert_that(n_i3 == n_i2,
+                            msg = "Number of infectious cases should not change during infect step.")
+    assertthat::assert_that(n_s + n_e + n_i + n_r == n_s2 + n_e2 + n_i2 + n_r2,
+                            msg = "Total population should be conserved during disease progression.")
+    assertthat::assert_that(n_s2 + n_e2 + n_i2 + n_r2 == n_s3 + n_e3 + n_i3 + n_r3,
+                            msg = "Total population should be conserved during infect step.")
+
+    message("Disease progression:\n  ",
+            d_e, " new infections (in exposed status),\n  ",
+            d_i, " progressed from exposed to infectious,\n  ",
+            d_r, " infectious individuals recovered.\n"
+            )
+  }
+
+  model$agts <- agents
   invisible(model)
 }

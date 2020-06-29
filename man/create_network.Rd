@@ -2,47 +2,68 @@
 % Please edit documentation in R/network.R
 \name{create_network}
 \alias{create_network}
-\title{Build a small-world network from a set of agents}
+\title{Build a network from a set of agents}
 \usage{
-create_network(agents, dim, nei, p)
+create_network(
+  agents,
+  nw_type,
+  nw_frequency,
+  nw_intensity,
+  topology,
+  nei,
+  p,
+  ba_dist = NULL,
+  ba_seq = NULL,
+  ba_zero_appeal = 1,
+  ba_out_pref = FALSE
+)
 }
 \arguments{
-\item{agents}{A data frame where each row is an agent and the columns
-represent:
-\itemize{
-\item \code{age}: the age in years
-\item \code{sex}: The sex (a factor with levels "M" and "F")
-\item \code{med_cond}: Logical, does the agent have a pre-existing medical
-condition?
-\item \code{seir_status}: An ordered factor indicating SEIR status ("S", "E", "I",
-or "R")
-\item \code{sympt}: Logical, if the agent is infected (\code{seir_status} "I"),
-are they exhibiting symptoms of COVID-19?
-}}
+\item{agents}{A data.table where each row is an agent and the columns
+include a variable "id" that serves as a unique ID for the agent.}
 
-\item{dim}{Dimension of the network. Should be 1. The number of
-vertices is
-\ifelse{html}{\out{<i>N</i><sup><i>d</i></sup>}}{\eqn{\eqn{N^d}}{_N^d_)}},
-where \emph{N} is the number of agents (\code{nrow(agents)}) and \emph{d} is the
-dimension. For multidimensional arrays, neighborhoods are calaculated along
-all axes.}
+\item{nw_type}{A description of the type of network. This
+is purely descriptive and doesn't affect the creation of the network.}
+
+\item{nw_frequency}{The mean frequency of contact (per time step) for this
+kind of network contact.}
+
+\item{nw_intensity}{The intensity of contact for this kind of network
+contact. Should be a real number between 0 and 1 indicating the intensity
+of close personal contact.}
 
 \item{nei}{Network distance (around a ring or hyper-torus) that will be
-connected by neighbor links. If \code{nei} is 2, then the small world
+connected by neighbor links in small-world networks.
+If \code{nei} is 2, then the small world
 network is initialized with edges to neighbors and neighbors-of-neighbors
-in each direction and dimension.}
+in each direction and dimension.
+For preferential attachment (or BA) networks, \code{nei} is the number of edges
+to add in each time step while constructing the network.}
 
-\item{p}{The probability of rewiring an edge. Small worlds start out with
-dense connections between neighbors (up to separation-degree \code{nei}),
-and then a random subset, chosen with probabilty \code{p} is rewired to random
-vertices.}
+\item{p}{For small world networks, this is the probability of rewiring an
+edge. For preferential attachment (or BA) networks, \code{p} is the power of
+preferential attachment (1 for linear preferential attachment).
+
+Small worlds start out with dense connections between neighbors
+(up to separation-degree \code{nei}), and then a random subset, chosen with
+robabilty \code{p} is rewired to random vertices.
+
+Preferential attachment networks, start with no edges and \code{nei} edges
+are added at each step, with the preference for attaching to another
+vertex given by
+\ifelse{html}{\out{<i>P<sub>i</sub> ~ k<sub>i</sub><sup>p</sup> +
+  a</i>}}{\deqn{P_i ~ k_i^p + a}}
+where \ifelse{html}{\out{<i>k<sub>i</sub>}}{\eqn{k_i}} is the number of
+edges originating at other vertices that connect to vertex \emph{i},
+\emph{p} is the preferential attachment power (1 for linear preference), and
+\emph{a} is the affinity for unconnected vertices (which we set to 1).}
 }
 \value{
-An iGraph network, where vertices have attributes corresponding to
-the columns of the \code{agents} data frame.
+A list of the network and a data table with one row corresponding to
+each edge of the network.
 }
 \description{
-Given a set of agents, build a small-world network and give each vertex the
+Given a set of agents, build a network and give each vertex the
 attributes of one of the agents
 }
 \examples{
@@ -57,3 +78,4 @@ agents <- create_agents(age = runif(n_agt, max = 90),
 network <- create_network(agents, 1, 5, 0.05)
 }
 }
+\keyword{internal}

@@ -1,8 +1,10 @@
 # RStudio files to ignore
 #
+.Rproj.user
 .Rproj.user/
 .Rhistory
 .Rdata
+.RDataTmp
 .DS_Store
 *.Rproj
 #
@@ -44,7 +46,12 @@ __pypackages__/
 ~*.ppt*
 ~*.xls*
 #
+# RMarkdown files to ignore
+#
+*_cache/
+cache/
+#
 # General files to ignre
 #
 *.bak
-.Rproj.user
+*.tmp

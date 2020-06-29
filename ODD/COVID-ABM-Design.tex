@@ -1,0 +1,458 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={An Agent-Based Model of COVID-19 Transmission},
+  pdfauthor={Jonathan M. Gilligan and Kelsea B. Best},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\usepackage{jglucida}
+
+\title{An Agent-Based Model of COVID-19 Transmission}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{An Overview-Design Concepts-Details Description}
+\author{Jonathan M. Gilligan and Kelsea B. Best}
+\date{2020-05-01}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+This model is a simple agent-based model of COVID-19 transmission in a
+population connected by social networks. The transmission of COVID-19 is
+modeled using a compartmental SEIR model in which individual agents
+progress through disease stages of susceptible, exposed, infected or
+recovered. Agents are connected to one another through non-spatial
+social networks which are modeled as Watts-Strogatz small world networks
+(Watts and Strogatz
+\protect\hyperlink{ref-watts:collective.dynamics:1998}{1998}) or
+Barabási-Albert scale-invariant networks (Albert and Barabási
+\protect\hyperlink{ref-albert:statistical.mechanics:2002}{2002};
+Barabási and Albert
+\protect\hyperlink{ref-barabasi:emergence.scaling:1999}{1999}). The
+disease may be transmitted through these network links.
+
+\hypertarget{model-overview}{%
+\section{Model Overview}\label{model-overview}}
+
+\hypertarget{purpose}{%
+\subsection{Purpose}\label{purpose}}
+
+The purpose of this model is to use agent-based modeling to simulate the
+spread of COVID-19 in communities. The model is used to simulate the
+effects of different types of network connectivity (including changes to
+the network connections through interventions such as ``social
+isolation'') on the spread of infections.
+
+The model does not attempt to provide reliable predictions of the future
+spread of disease, but focuses on making comparisons between different
+patterns of social network connections.
+
+\hypertarget{entities-state-variables-and-scales}{%
+\subsection{Entities, State Variables, and
+Scales}\label{entities-state-variables-and-scales}}
+
+There are two kinds of entities in this model: \textbf{agents} and
+\textbf{links}.
+
+\hypertarget{agents}{%
+\subsubsection{Agents}\label{agents}}
+
+\textbf{Agents} represent individual people. Each agent is initialized
+with the following characteristics:
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{age}, which is represented as both a number and as a bracket.
+\item
+  \emph{sex}, a binary variable representing male or female sex
+  phenotype. This model does not currently treat intersex individuals.
+\item
+  \emph{comorbidity}, a binary variable that represents whether the
+  indivisual has a comorbidity that could complicate susceptibility to
+  new infections.
+\item
+  \emph{symptomatic}, a binary variable that controls whether the
+  individaul will be symptomatic if they are infected. This is
+  important, because symptomatic individuals are reported to shed
+  greater amounts of virus than asymptomatic ones. Future variations on
+  this model may also account for behavioral differences (symptomatic
+  individuals may be more likely to self-quarantine or seek medical
+  attention, whereas asymptomatic ones may continue to interact with
+  others and thus spread the disease)
+\item
+  \emph{health status}, an ordinal factor that represents the status of
+  the individual within a four-compartment \emph{SEIR} model, where
+  \emph{S} represents \emph{susceptible} individuals, \emph{E}
+  represents \emph{exposed} individuals who are incubating an infection
+  but are not yet infectious, \emph{I} represents \emph{infectious}
+  individuals who can spread the disease, and \emph{R} represents
+  \emph{recovered} individuals who are no longer contagious and who have
+  acquired immunity against being reinfected.
+\item
+  \emph{ticks}, an integer representing the number of time steps since
+  the individual entered the current \emph{health status}. This affects
+  the progression from \emph{E} to \emph{I} and from \emph{I} to
+  \emph{R}.
+\item
+  \emph{shedding factor}, a real number (positive or negative) that
+  represents the relative degree of viral shedding (e.g., symptomatic
+  individuals are reported to have higher shedding factors than
+  asymptomatic ones).
+\item
+  \emph{susceptibility factor}, a real number (positive or negative)
+  that represents the relative susceptibility of an individual to
+  contracting an infection when exposed to the virus.
+\item
+  \emph{EI scale}, \emph{EI shape}, \emph{IR scale}, and \emph{IR
+  shape}, real numbers that parameterize progress of the disease. See
+  further details under \emph{Submodels}
+\end{itemize}
+
+\hypertarget{links}{%
+\subsubsection{Links}\label{links}}
+
+\textbf{Links} represent social connections. These can be
+\emph{household} connections (people who live together), \emph{social}
+connections of people who live in different households, but are
+connected through friendship, church, community groups, etc., and see
+one another regularly, and \emph{work} connections.
+
+Links have parameters:
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{contact frequency}, represents the mean frequency of this kind
+  of contact, in number of meetings per time step.
+\item
+  \emph{contact intensity}, represents the intensity of close
+  interaction (e.g., visits to a health-care professional will generally
+  be more intense than interactions with cashiers at a store)
+\end{itemize}
+
+The characteristics of the network is described in greater detail under
+\emph{collectives}, below.
+
+\hypertarget{spatiotemporal-scales}{%
+\subsubsection{Spatiotemporal scales}\label{spatiotemporal-scales}}
+
+This model does not explicitly represent space, and agents interact
+through social networks rather than spatial proximity.
+
+The time step represents one day. The number of ticks in a model run can
+be specified by the user.
+
+\hypertarget{environment}{%
+\subsubsection{Environment}\label{environment}}
+
+Initially, we will not model the environment. We will have agents
+connected by social networks with no representation of the physical
+environments they inhabit. Later versions will incorporate
+infrastructure to represent connections via transportation, and spatial
+distributions of housing units and workplaces.
+
+\hypertarget{process-overview-and-scheduling}{%
+\subsection{Process Overview and
+Scheduling}\label{process-overview-and-scheduling}}
+
+At each time step, two things happen:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Each agent in the \emph{E} or \emph{I} state progresses stochastically
+  toward the next state (\emph{I} or \emph{R}, respectively). The
+  probability of progression may depend on the number of time steps the
+  agent has been in this status. See the \emph{disease progression}
+  submodel for details.
+\item
+  Every agent in the \emph{I} state stochastically infects its immediate
+  neighbors on the network (those with whom it shares a link) who are in
+  the \emph{S} status. See the \emph{infect} submodel for details.
+\end{enumerate}
+
+\hypertarget{design-concepts}{%
+\section{Design Concepts}\label{design-concepts}}
+
+\hypertarget{basic-principles}{%
+\subsection{Basic Principles}\label{basic-principles}}
+
+The transmission of COVID-19 is represented using a four-compartment
+SEIR model. The SEIR model categorizes agents into \emph{susceptible},
+\emph{exposed}, \emph{infectious} or \emph{recovered}.
+
+Infection (transition from \emph{susceptible} to \emph{exposed} status)
+occurs stochastically. At each time step, every \emph{susceptible} agent
+that is connected to an \emph{infectious} agent by a network link has a
+probability of transitioning to an \emph{exposed} state. The probability
+depends on the characteristics of the two agents and of the network
+link.
+
+Agents are heterogeneous, so two agents with the same age, sex, etc. can
+have different shedding and susceptibility factors. These factors are
+drawn at random from probability distributions that are parameterized by
+the agent characteristics (age, sex, comorbidities, and symptomatic
+status)
+
+\emph{Exposed} and \emph{infectious} agents stochastically transition to
+the next stage (\emph{infectious} and \emph{recovered}, respectively),
+with time-dependent probabilities that follow gamma or Weibull
+distributions. The parameters of these distributions may depend on the
+agent's age, sex, comorbidities, etc.
+
+\hypertarget{emergence}{%
+\subsection{Emergence}\label{emergence}}
+
+The spread of the disease emerges from individual interactions on the
+network.
+
+\hypertarget{adaptation}{%
+\subsection{Adaptation}\label{adaptation}}
+
+Currently, the agents do not adapt their behavior to changing
+conditions. Future versions may allow agents to change their social
+interactions when they get sick or in response to public policies, such
+as stay-at-home orders.
+
+\hypertarget{objectives}{%
+\subsection{Objectives}\label{objectives}}
+
+The agents do not pursue objectives.
+
+\hypertarget{learning}{%
+\subsection{Learning}\label{learning}}
+
+The agents do not learn.
+
+\hypertarget{prediction}{%
+\subsection{Prediction}\label{prediction}}
+
+The agents do not engage in prediction.
+
+\hypertarget{sensing}{%
+\subsection{Sensing}\label{sensing}}
+
+The agents do not currently use sensing. In the future, they may sense
+aspects of their own or other agents' health.
+
+\hypertarget{interaction}{%
+\subsection{Interaction}\label{interaction}}
+
+Agents interact through links. These are how infections are transmitted.
+
+\hypertarget{stochasticity}{%
+\subsection{Stochasticity}\label{stochasticity}}
+
+Agent initialization is stochastic with characteristics (age, sex,
+comorbidities, future symptomatic response to infection, shedding
+intensity, and susceptibility) drawn from distributions that can be
+specified at run-time.
+
+Disease progress (\emph{E} to \emph{I} and \emph{I} to \emph{R}) are
+stochastic, with probabilities that vary with the amount of time an
+agent has been in that status.
+
+Disease transmission is stochastic. Disease is transmitted across links
+that connect \emph{infectious} to \emph{susceptible} agents. The
+probability of transmission depends on the \emph{shedding intensity} of
+the \emph{infectious} agent, the \emph{susceptibility} of the
+\emph{susceptible} agent, and the contact characteristics of the link.
+
+\hypertarget{collectives}{%
+\subsection{Collectives}\label{collectives}}
+
+Multiple overlapping social networks (household, social, and work)
+connect agents. These networks can have different topologies that are
+specified at runtime when the agents are initialized.
+
+Currently available topologies are Strogatz-Watts \emph{small-world}
+(Watts and Strogatz
+\protect\hyperlink{ref-watts:collective.dynamics:1998}{1998}) and
+Barabási Albert \emph{preferential attachment} (Albert and Barabási
+\protect\hyperlink{ref-albert:statistical.mechanics:2002}{2002};
+Barabási and Albert
+\protect\hyperlink{ref-barabasi:emergence.scaling:1999}{1999}). The big
+difference between these is that the degree of connection is fairly
+uniformly distributed in the Strogatz Watts model, but is very unequally
+distributed in Barabási-Albert networks, with a few highly connected
+nodes that may be able to simulate super-spreaders.
+
+\hypertarget{observation}{%
+\subsection{Observation}\label{observation}}
+
+At each time step we record the number of agents in each health status
+(\emph{S}, \emph{E}, \emph{I}, or \emph{R}).
+
+\hypertarget{details}{%
+\section{Details}\label{details}}
+
+\hypertarget{initialization}{%
+\subsection{Initialization}\label{initialization}}
+
+Table of parameters for disease transmission probabilities and disease
+progression is loaded at run time and used to initialize the agents.
+
+Agents are initialized using user-specified distributions of age, sex,
+comorbidities, and whether they will become symptomatic if they are
+infected.
+
+Networks are initialized at runtime using either Strogatz-Watts
+small-world or Barabási-Albert preferential attachment topologies.
+
+\hypertarget{input-data}{%
+\subsection{Input Data}\label{input-data}}
+
+There is no input data during a model run. Everything is generated by
+the model from the initialization.
+
+\hypertarget{submodels}{%
+\subsection{Submodels}\label{submodels}}
+
+\hypertarget{infection}{%
+\subsubsection{Infection}\label{infection}}
+
+Infection probabilities are a function of shedding intensity,
+susceptibility, and the frequency and intensity of contact:
+
+\[P_{\text{infection}} = 1 - (1 - p_0)^{\text{contact frequency}},\]
+where \[
+p_0 = \text{logit}^{-1}\left( x_0 + f_{\text{shedding}, \text{source}} + 
+  f_{\text{susceptibility}, \text{subject}} + f_{\text{contact intensity}} \right),
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \(x_0\) is a baseline infection probability parameter, which is then
+  modified up or down by the following factors:
+\item
+  \(f_{\text{shedding}, \text{source}}\) represents the intensity of
+  viral shedding by the infectious contact, accounting for things like
+  whether the source is symptomatic or asymptomatic.
+\item
+  \(f_{\text{susceptibility}, \text{subject}}\) represents the
+  susceptibility of the susceptible contact, accounting for things like
+  age, sex, and comorbidities.
+\item
+  \(f_{\text{contact intensity}}\) represents the intensity of close
+  personal contact (e.g., a medical visit is likely to entail longer and
+  closer contact than an encounter with a cashier at a store).
+\item
+  \emph{contact frequency} represents the number of times per time-step
+  (i.e., per day) that people will have contact for this type of link.
+\end{itemize}
+
+\hypertarget{disease-progression}{%
+\subsubsection{Disease Progression}\label{disease-progression}}
+
+Disease progression from \emph{E} to \emph{I} and from \emph{I} to
+\emph{R} is stochastic, with a probability of transition at each time
+step. The probabilities follow either gamma or Weibull distributions (so
+the probability of transition is time-dependent, as opposed to a
+time-independent exponential distribution).
+
+For either distribution, the shape parameters are labeled
+\texttt{ei\_shape} and \texttt{ir\_shape}, respectively and the scale
+parameters are labeled \texttt{ei\_scale} and \texttt{ir\_scale},
+respectively.
+
+Parameters for \emph{E} to \emph{I} have been estimated from empirical
+data for both gamma and Weibull representations.
+
+There are no good studies for the progression from \emph{I} to \emph{R},
+and we may need in the fiture to account for changing viral shedding
+over the course of the \emph{I} stage of the disease. Right now, we're
+using best guesses for this distriubtion, but it will be easy to update
+it with empirically based numbers.
+
+Right now, disease progression is the same for all demographic groups,
+but there is the flexibility to have disease progression vary depending
+on age, sex, comorbidities, etc.
+
+\hypertarget{references}{%
+\section{References}\label{references}}
+
+\hypertarget{refs}{}
+\leavevmode\hypertarget{ref-albert:statistical.mechanics:2002}{}%
+Albert, Réka, and Albert-László Barabási. 2002. ``Statistical Mechanics
+of Complex Networks.'' \emph{Reviews of Modern Physics} 74 (1): 47--97.
+\url{https://doi.org/10.1103/RevModPhys.74.47}.
+
+\leavevmode\hypertarget{ref-barabasi:emergence.scaling:1999}{}%
+Barabási, Albert-László, and Réka Albert. 1999. ``Emergence of Scaling
+in Random Networks.'' \emph{Science} 286 (5439): 509--12.
+\url{https://doi.org/10.1126/science.286.5439.509}.
+
+\leavevmode\hypertarget{ref-watts:collective.dynamics:1998}{}%
+Watts, Duncan J., and Steven H. Strogatz. 1998. ``Collective Dynamics of
+`Small-World' Networks.'' \emph{Nature} 393 (6684): 440--42.
+\url{https://doi.org/10.1038/30918}.
+
+\end{document}

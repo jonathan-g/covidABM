@@ -4,34 +4,34 @@ library(stringr)
 library(tidyr)
 library(purrr)
 library(rlang)
+library(dtplyr)
+library(data.table)
 
 seir_levels <- c("S" = 1, "E" = 2, "I" = 3, "R" = 4)
 
 age_brackets <- tibble::tibble(lower = c(0, 20, 30, 40, 50, 60, 70, 80),
                        upper = c(lower, Inf) %>% lead() %>% head(-1),
-                       bracket = seq_along(lower) %>%
-                         ordered(labels = stringr::str_c(lower, upper,
-                                                         sep = "-")))
+                       bracket = str_c(lower, pmax(upper-1, 0), sep = "-") %>%
+                         str_replace_all("-Inf$", "+") %>%
+                         ordered(., levels = .))
+age_brackets <- as.data.frame(age_brackets)
 
 source("generate_test_probs.R")
-source("../R/probs.R")
-source("../R/transitions.R")
 
-prob_cfg <- create_prob_cfg(NULL)
-trans_cfg <- create_transition_cfg(NULL)
+trans_df <- create_transmission_cfg(NULL)
+prog_df <- create_progression_cfg(NULL)
+prog_df <- dplyr::mutate(prog_df,
+                         transition = str_replace_all(compartment,
+                                                      c("E" = "ei", "I" = "ir")))
+prog_df <- dplyr::select(prog_df, -compartment)
+prog_df <- tidyr::pivot_wider(prog_df, names_from = c(param, transition),
+                              values_from = value)
 
-probs <- build_prob_matrix(prob_cfg)
+trans_df <- as.data.table(trans_df)
+prog_df <- as.data.table(prog_df)
 
-e_df <- trans_cfg %>% dplyr::filter(compartment == "E") %>%
-  dplyr::select(-compartment)
-i_df <- trans_cfg %>% dplyr::filter(compartment == "I") %>%
-  dplyr::select(-compartment)
-e_trans <- build_transition_matrix(e_df)
-i_trans <- build_transition_matrix(i_df)
-trans <- list(e = e_trans, i = i_trans)
+saveRDS(trans_df, "transmission.Rds")
+saveRDS(prog_df, "progression.Rds")
 
-saveRDS(probs, "probs.Rds")
-saveRDS(trans, "trans.Rds")
-
-usethis::use_data(seir_levels, age_brackets, probs, trans,
+usethis::use_data(seir_levels, age_brackets, trans_df, prog_df,
                   internal = TRUE, overwrite = TRUE)
