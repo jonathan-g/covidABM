@@ -92,7 +92,7 @@ pages:
       - $R_LIBS_USER
   artifacts:
     paths:
-      - public
+      - docs
     expire_in: 30 days
   only:
     - master
