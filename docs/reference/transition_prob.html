@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Build a probability matrix for transitions between compartnemts — build_transition_matrix • covidABM</title>
+<title>Look up a progression probability to the next compartment — transition_prob • covidABM</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,10 @@
 
 
 
-<meta property="og:title" content="Build a probability matrix for transitions between compartnemts — build_transition_matrix" />
-<meta property="og:description" content="Take a data frame with columns corresponding to discrete coordinates in a
-multidimensional space and form a matrix." />
+<meta property="og:title" content="Look up a progression probability to the next compartment — transition_prob" />
+<meta property="og:description" content="Look up a probability for an agent in compartment E or I to progress to
+the next compartment (I or R, respectively), based on the characteristics of
+agent and subject." />
 
 
 
@@ -73,7 +74,7 @@ multidimensional space and form a matrix." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -107,40 +108,43 @@ multidimensional space and form a matrix." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Build a probability matrix for transitions between compartnemts</h1>
+    <h1>Look up a progression probability to the next compartment</h1>
     
-    <div class="hidden name"><code>build_transition_matrix.Rd</code></div>
+    <div class="hidden name"><code>transition_prob.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Take a data frame with columns corresponding to discrete coordinates in a
-multidimensional space and form a matrix.</p>
+    <p>Look up a probability for an agent in compartment E or I to progress to
+the next compartment (I or R, respectively), based on the characteristics of
+agent and subject.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>build_transition_matrix</span>(<span class='no'>trans_df</span>)</pre>
+    <pre class="usage"><span class='fu'>transition_prob</span>(<span class='kw'>ticks</span>, <span class='kw'>shape</span>, <span class='kw'>scale</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>trans_df</th>
-      <td><p>A data frame with columns:</p><ul>
-<li><p><code>age_bkt</code> An ordered factor for age-bracket (lower = younger)</p></li>
-<li><p><code>sex</code> A factor or character vector "F" or "M"</p></li>
-<li><p><code>med_cond</code> Logical: Has pre-existing condition</p></li>
-<li><p><code>sympt</code> Logical: Does the agent display symptoms if infected?</p></li>
-<li><p><code>prob</code> The probability of transitioning to the next compartment</p></li>
-</ul></td>
+      <th>ticks</th>
+      <td><p>The number of time steps in which the agent has been in the
+current compartment</p></td>
+    </tr>
+    <tr>
+      <th>shape</th>
+      <td><p>The shape parameter for the transition probability distribution</p></td>
+    </tr>
+    <tr>
+      <th>scale</th>
+      <td><p>The scale parameter for the transition probability distribution</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A 4-dimensional matrix.</p>
+    <p>A vector of progression probabilities.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'># ADD_EXAMPLES_HERE
-</div></pre>
+    <pre class="examples"><div class='input'><span class='co'># ADD_EXAMPLES_HERE</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

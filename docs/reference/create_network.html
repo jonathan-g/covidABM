@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Build a small-world network from a set of agents — create_network • covidABM</title>
+<title>Build a network from a set of agents — create_network • covidABM</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Build a small-world network from a set of agents — create_network" />
-<meta property="og:description" content="Given a set of agents, build a small-world network and give each vertex the
+<meta property="og:title" content="Build a network from a set of agents — create_network" />
+<meta property="og:description" content="Given a set of agents, build a network and give each vertex the
 attributes of one of the agents" />
 
 
@@ -73,7 +73,7 @@ attributes of one of the agents" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -107,75 +107,99 @@ attributes of one of the agents" />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Build a small-world network from a set of agents</h1>
+    <h1>Build a network from a set of agents</h1>
     
     <div class="hidden name"><code>create_network.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Given a set of agents, build a small-world network and give each vertex the
+    <p>Given a set of agents, build a network and give each vertex the
 attributes of one of the agents</p>
     </div>
 
-    <pre class="usage"><span class='fu'>create_network</span>(<span class='no'>agents</span>, <span class='no'>dim</span>, <span class='no'>nei</span>, <span class='no'>p</span>)</pre>
+    <pre class="usage"><span class='fu'>create_network</span>(
+  <span class='kw'>agents</span>,
+  <span class='kw'>nw_type</span>,
+  <span class='kw'>nw_frequency</span>,
+  <span class='kw'>nw_intensity</span>,
+  <span class='kw'>topology</span>,
+  <span class='kw'>nei</span>,
+  <span class='kw'>p</span>,
+  ba_dist = <span class='kw'>NULL</span>,
+  ba_seq = <span class='kw'>NULL</span>,
+  ba_zero_appeal = <span class='fl'>1</span>,
+  ba_out_pref = <span class='fl'>FALSE</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>agents</th>
-      <td><p>A data frame where each row is an agent and the columns
-represent:</p><ul>
-<li><p><code>age</code>: the age in years</p></li>
-<li><p><code>sex</code>: The sex (a factor with levels "M" and "F")</p></li>
-<li><p><code>med_cond</code>: Logical, does the agent have a pre-existing medical
-condition?</p></li>
-<li><p><code>seir_status</code>: An ordered factor indicating SEIR status ("S", "E", "I",
-or "R")</p></li>
-<li><p><code>sympt</code>: Logical, if the agent is infected (<code>seir_status</code> "I"),
-are they exhibiting symptoms of COVID-19?</p></li>
-</ul></td>
+      <td><p>A data.table where each row is an agent and the columns
+include a variable "id" that serves as a unique ID for the agent.</p></td>
     </tr>
     <tr>
-      <th>dim</th>
-      <td><p>Dimension of the network. Should be 1. The number of
-vertices is
-<i>N</i><sup><i>d</i></sup>,
-where <em>N</em> is the number of agents (<code><a href='https://rdrr.io/r/base/nrow.html'>nrow(agents)</a></code>) and <em>d</em> is the
-dimension. For multidimensional arrays, neighborhoods are calaculated along
-all axes.</p></td>
+      <th>nw_type</th>
+      <td><p>A description of the type of network. This
+is purely descriptive and doesn't affect the creation of the network.</p></td>
+    </tr>
+    <tr>
+      <th>nw_frequency</th>
+      <td><p>The mean frequency of contact (per time step) for this
+kind of network contact.</p></td>
+    </tr>
+    <tr>
+      <th>nw_intensity</th>
+      <td><p>The intensity of contact for this kind of network
+contact. Should be a real number between 0 and 1 indicating the intensity
+of close personal contact.</p></td>
     </tr>
     <tr>
       <th>nei</th>
       <td><p>Network distance (around a ring or hyper-torus) that will be
-connected by neighbor links. If <code>nei</code> is 2, then the small world
+connected by neighbor links in small-world networks.
+If <code>nei</code> is 2, then the small world
 network is initialized with edges to neighbors and neighbors-of-neighbors
-in each direction and dimension.</p></td>
+in each direction and dimension.
+For preferential attachment (or BA) networks, <code>nei</code> is the number of edges
+to add in each time step while constructing the network.</p></td>
     </tr>
     <tr>
       <th>p</th>
-      <td><p>The probability of rewiring an edge. Small worlds start out with
-dense connections between neighbors (up to separation-degree <code>nei</code>),
-and then a random subset, chosen with probabilty <code>p</code> is rewired to random
-vertices.</p></td>
+      <td><p>For small world networks, this is the probability of rewiring an
+edge. For preferential attachment (or BA) networks, <code>p</code> is the power of
+preferential attachment (1 for linear preferential attachment).</p>
+<p>Small worlds start out with dense connections between neighbors
+(up to separation-degree <code>nei</code>), and then a random subset, chosen with
+robabilty <code>p</code> is rewired to random vertices.</p>
+<p>Preferential attachment networks, start with no edges and <code>nei</code> edges
+are added at each step, with the preference for attaching to another
+vertex given by
+<i>P<sub>i</sub> ~ k<sub>i</sub><sup>p</sup> +
+  a</i>
+where <i>k<sub>i</sub> is the number of
+edges originating at other vertices that connect to vertex <em>i</em>,
+<em>p</em> is the preferential attachment power (1 for linear preference), and
+<em>a</em> is the affinity for unconnected vertices (which we set to 1).</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>An iGraph network, where vertices have attributes corresponding to
-the columns of the <code>agents</code> data frame.</p>
+    <p>A list of the network and a data table with one row corresponding to
+each edge of the network.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='no'>n_agt</span> <span class='kw'>&lt;-</span> <span class='fl'>20</span>
-<span class='no'>agents</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='create_agents.html'>create_agents</a></span>(<span class='kw'>age</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/stats/Uniform.html'>runif</a></span>(<span class='no'>n_agt</span>, <span class='kw'>max</span> <span class='kw'>=</span> <span class='fl'>90</span>),
-  <span class='kw'>sex</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"F"</span>, <span class='st'>"M"</span>), <span class='no'>n_agt</span>, <span class='kw'>replace</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>),
-  <span class='kw'>med_cond</span> <span class='kw'>=</span> <span class='kw pkg'>purrr</span><span class='kw ns'>::</span><span class='fu'><a href='https://purrr.tidyverse.org/reference/rbernoulli.html'>rbernoulli</a></span>(<span class='no'>n_agt</span>, <span class='fl'>0.20</span>),
-  <span class='kw'>seir_status</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"S"</span>, <span class='st'>"E"</span>, <span class='st'>"I"</span>, <span class='st'>"R"</span>), <span class='kw'>replace</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-    <span class='kw'>prob</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.9</span>, <span class='fl'>0.05</span>, <span class='fl'>0.05</span>, <span class='fl'>0.0</span>)),
-  <span class='kw'>sympt</span> <span class='kw'>=</span> <span class='kw pkg'>purrr</span><span class='kw ns'>::</span><span class='fu'><a href='https://purrr.tidyverse.org/reference/rbernoulli.html'>rbernoulli</a></span>(<span class='no'>n_agt</span>, <span class='fl'>0.5</span>))
-<span class='no'>network</span> <span class='kw'>&lt;-</span> <span class='fu'>create_network</span>(<span class='no'>agents</span>, <span class='fl'>1</span>, <span class='fl'>5</span>, <span class='fl'>0.05</span>)
+    <pre class="examples"><div class='input'><span class='co'>if</span> (<span class='fl'>FALSE</span>) {
+<span class='kw'>n_agt</span> <span class='op'>&lt;-</span> <span class='fl'>20</span>
+<span class='kw'>agents</span> <span class='op'>&lt;-</span> <span class='fu'>create_agents</span>(age = <span class='fu'><a href='https://rdrr.io/r/stats/Uniform.html'>runif</a></span>(<span class='kw'>n_agt</span>, max = <span class='fl'>90</span>),
+  sex = <span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"F"</span>, <span class='st'>"M"</span>), <span class='kw'>n_agt</span>, replace = <span class='fl'>TRUE</span>),
+  med_cond = <span class='kw'>purrr</span>::<span class='fu'><a href='https://purrr.tidyverse.org/reference/rbernoulli.html'>rbernoulli</a></span>(<span class='kw'>n_agt</span>, <span class='fl'>0.20</span>),
+  seir_status = <span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"S"</span>, <span class='st'>"E"</span>, <span class='st'>"I"</span>, <span class='st'>"R"</span>), replace = <span class='fl'>TRUE</span>,
+    prob = <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.9</span>, <span class='fl'>0.05</span>, <span class='fl'>0.05</span>, <span class='fl'>0.0</span>)),
+  sympt = <span class='kw'>purrr</span>::<span class='fu'><a href='https://purrr.tidyverse.org/reference/rbernoulli.html'>rbernoulli</a></span>(<span class='kw'>n_agt</span>, <span class='fl'>0.5</span>))
+<span class='kw'>network</span> <span class='op'>&lt;-</span> <span class='fu'>create_network</span>(<span class='kw'>agents</span>, <span class='fl'>1</span>, <span class='fl'>5</span>, <span class='fl'>0.05</span>)
 }</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

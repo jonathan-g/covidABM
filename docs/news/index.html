@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -109,6 +109,22 @@
       
     </div>
 
+    <div id="covidabm-0109000" class="section level1">
+<h1 class="page-header" data-toc-text="0.1.0.9000">
+<a href="#covidabm-0109000" class="anchor"></a>CovidABM 0.1.0.9000</h1>
+<p>Refactor to optimize for speed.</p>
+<ul>
+<li>Move from tibbles to data.tables</li>
+<li>Make primary representation of models a data.table instead of an igraph object.</li>
+<li>Neighbors are now coded as columns in data table.</li>
+<li>Precompute probabilities, whether an agent will get symptoms, when an exposed or infected agent will move to the next compartment</li>
+</ul>
+<p>Other changes:</p>
+<ul>
+<li>Add multiple networks (social, home, and work)</li>
+<li>Change statistics of stochastic disease progression from E to I and I to R.</li>
+</ul>
+</div>
     <div id="covidabm-0009000" class="section level1">
 <h1 class="page-header" data-toc-text="0.0.0.9000">
 <a href="#covidabm-0009000" class="anchor"></a>covidABM 0.0.0.9000</h1>

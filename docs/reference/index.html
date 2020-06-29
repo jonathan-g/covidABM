@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -162,15 +162,9 @@
       <tr>
         
         <td>
-          <p><code><a href="create_agents.html">create_agents()</a></code> </p>
+          <p><code><a href="build_agent_df.html">build_agent_df()</a></code> </p>
         </td>
         <td><p>Create one or more agents</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="create_network.html">create_network()</a></code> </p>
-        </td>
-        <td><p>Build a small-world network from a set of agents</p></td>
       </tr><tr>
         
         <td>
@@ -189,6 +183,13 @@
           <p><code><a href="infect.html">infect()</a></code> </p>
         </td>
         <td><p>Propagate infections on the network</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="progress_disease.html">progress_disease()</a></code> </p>
+        </td>
+        <td><p>Progress agents in the "E" and "I" compartments to the next compartments
+("I" and "R", respectively).</p></td>
       </tr>
     </tbody><tbody>
       <tr>
@@ -202,31 +203,7 @@
     </tbody><tbody>
       
       
-      <tr>
-        
-        <td>
-          <p><code><a href="get_prob.html">get_prob()</a></code> </p>
-        </td>
-        <td><p>Look up a disease-transmission probability</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_transition.html">get_transition()</a></code> </p>
-        </td>
-        <td><p>Look up a transition probability to the next compartment</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_seir_level.html">get_seir_level()</a></code> </p>
-        </td>
-        <td><p>Translate a letter into an integer SEIR level</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_age_bracket.html">get_age_bracket()</a></code> </p>
-        </td>
-        <td><p>Get the age bracket</p></td>
-      </tr>
+      
     </tbody><tbody>
       <tr>
         <th colspan="2">
@@ -242,33 +219,33 @@
       <tr>
         
         <td>
-          <p><code><a href="build_prob_matrix.html">build_prob_matrix()</a></code> </p>
+          <p><code><a href="decode_age_bracket.html">decode_age_bracket()</a></code> </p>
         </td>
-        <td><p>Build a probability matrix for transmission of infection</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="build_transition_matrix.html">build_transition_matrix()</a></code> </p>
-        </td>
-        <td><p>Build a probability matrix for transitions between compartnemts</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="read_probs.html">read_probs()</a></code> </p>
-        </td>
-        <td><p>Read probabilities for disease transmission</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="read_trans.html">read_trans()</a></code> </p>
-        </td>
-        <td><p>Read parameters for disease progression</p></td>
+        <td><p>Translate text representation of an age bracket into an ordered factor</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="decode_seir.html">decode_seir()</a></code> </p>
         </td>
         <td><p>Translate integer index to SEIR level</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_age_bracket.html">get_age_bracket()</a></code> </p>
+        </td>
+        <td><p>Get the age bracket</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="get_seir_level.html">get_seir_level()</a></code> </p>
+        </td>
+        <td><p>Translate a letter into an integer SEIR level</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="transition_prob.html">transition_prob()</a></code> </p>
+        </td>
+        <td><p>Look up a progression probability to the next compartment</p></td>
       </tr>
     </tbody>
     </table>

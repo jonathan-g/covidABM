@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -115,7 +115,7 @@
     <p>Convert an age (in years) to a bracket.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_age_bracket</span>(<span class='no'>x</span>)</pre>
+    <pre class="usage"><span class='fu'>get_age_bracket</span>(<span class='kw'>x</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -131,10 +131,9 @@
     <p>Ordered factor indicating the age bracket</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>get_age_bracket</span>(<span class='fl'>21</span>)</div><div class='output co'>#&gt; [1] 20-30
-#&gt; Levels: 0-20 &lt; 20-30 &lt; 30-40 &lt; 40-50 &lt; 50-60 &lt; 60-70 &lt; 70-80 &lt; 80-Inf</div><div class='input'><span class='fu'>get_age_bracket</span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>10</span>, <span class='fl'>20</span>, <span class='fl'>21</span>, <span class='fl'>25</span>, <span class='fl'>29</span>, <span class='fl'>30</span>, <span class='fl'>31</span>, <span class='fl'>39</span>, <span class='fl'>40</span>, <span class='fl'>41</span>))</div><div class='output co'>#&gt;  [1] 0-20  20-30 20-30 20-30 20-30 30-40 30-40 30-40 40-50 40-50
-#&gt; Levels: 0-20 &lt; 20-30 &lt; 30-40 &lt; 40-50 &lt; 50-60 &lt; 60-70 &lt; 70-80 &lt; 80-Inf</div><div class='input'>
-</div></pre>
+    <pre class="examples"><div class='input'><span class='fu'>get_age_bracket</span>(<span class='fl'>21</span>)</div><div class='output co'>#&gt; [1] 20-29
+#&gt; Levels: 0-19 &lt; 20-29 &lt; 30-39 &lt; 40-49 &lt; 50-59 &lt; 60-69 &lt; 70-79 &lt; 80+</div><div class='input'><span class='fu'>get_age_bracket</span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>10</span>, <span class='fl'>20</span>, <span class='fl'>21</span>, <span class='fl'>25</span>, <span class='fl'>29</span>, <span class='fl'>30</span>, <span class='fl'>31</span>, <span class='fl'>39</span>, <span class='fl'>40</span>, <span class='fl'>41</span>))</div><div class='output co'>#&gt;  [1] 0-19  20-29 20-29 20-29 20-29 30-39 30-39 30-39 40-49 40-49
+#&gt; Levels: 0-19 &lt; 20-29 &lt; 30-39 &lt; 40-49 &lt; 50-59 &lt; 60-69 &lt; 70-79 &lt; 80+</div><div class='input'></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

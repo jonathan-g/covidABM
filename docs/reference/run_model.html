@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -115,14 +115,14 @@
     <p>Run a model for a specified number of ticks, where each tick is a day.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>run_model</span>(<span class='no'>model</span>, <span class='no'>ticks</span>, <span class='kw'>progress</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>run_model</span>(<span class='kw'>model</span>, <span class='kw'>ticks</span>, progress = <span class='fl'>FALSE</span>, check_term = <span class='fl'>TRUE</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>model</th>
-      <td><p>A model object returned from <code><a href='setup_model.html'>setup_model()</a></code>.</p></td>
+      <td><p>A model object returned from <code>setup_model()</code>.</p></td>
     </tr>
     <tr>
       <th>ticks</th>
@@ -132,7 +132,12 @@
       <th>progress</th>
       <td><p>Print progress messages for every tick
 If it's <code>TRUE</code> or 1, a message is printed. If it's greater than 1
-additional messages from <code><a href='tick.html'>tick()</a></code> are printed.</p></td>
+additional messages from <code>tick()</code> are printed.</p></td>
+    </tr>
+    <tr>
+      <th>check_term</th>
+      <td><p>Check populations in compartments and terminate early if
+there are no agents in either E or I (so no further infections can happen).</p></td>
     </tr>
     </table>
 
@@ -142,8 +147,7 @@ additional messages from <code><a href='tick.html'>tick()</a></code> are printed
 a tibble with the counts of agents in "S", "E", "I", and "R" status.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'># ADD_EXAMPLES_HERE
-</div></pre>
+    <pre class="examples"><div class='input'><span class='co'># ADD_EXAMPLES_HERE</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

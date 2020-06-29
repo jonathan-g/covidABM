@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -116,16 +116,17 @@
     </div>
 
     <pre class="usage"><span class='fu'>setup_model</span>(
-  <span class='no'>agent_count</span>,
-  <span class='no'>age_dist</span>,
-  <span class='no'>p_female</span>,
-  <span class='no'>seir_dist</span>,
-  <span class='no'>p_med_cond</span>,
-  <span class='no'>p_symptomatic</span>,
-  <span class='no'>neighbors</span>,
-  <span class='no'>p_rewire</span>,
-  <span class='kw'>probs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>trans</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
+  <span class='kw'>agent_count</span>,
+  <span class='kw'>age_dist</span>,
+  <span class='kw'>p_female</span>,
+  <span class='kw'>seir_dist</span>,
+  <span class='kw'>p_med_cond</span>,
+  <span class='kw'>p_symptomatic</span>,
+  trans_df = <span class='kw'>NULL</span>,
+  prog_df = <span class='kw'>NULL</span>,
+  home_nw_params = <span class='kw'>NULL</span>,
+  social_nw_params = <span class='kw'>NULL</span>,
+  work_nw_params = <span class='kw'>NULL</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -167,23 +168,55 @@ else a vector or list of symptomatic status if infectious
 produce enough agents.</p></td>
     </tr>
     <tr>
-      <th>neighbors</th>
-      <td><p>The number of neighbor edges in the ring network graph to
-initialize the small world network (2 = connect to both nearest neighbors
-on the ring;  4 = connect to both neighbors and their neighbors, etc.).</p></td>
+      <th>trans_df</th>
+      <td><p>A data frame of parameters for disease
+transmission probability distributions. Columns are:</p><ul>
+<li><p><code>age_bkt</code>: The age bracket (ordered factor).</p></li>
+<li><p><code>sex</code>: The sex (factor with levels "M" and "F").</p></li>
+<li><p><code>med_cond</code>: Has a medical condition (logical).</p></li>
+<li><p><code>sympt</code>: Has symptoms of COVID-19, if infectious (logical).</p></li>
+<li><p><code>mu_shed</code>: Mean of the shedding parameter distribution.</p></li>
+<li><p><code>sigma_shed</code>: Scale (standard deviation) of the shedding parameter
+distribution.</p></li>
+<li><p><code>mu_susc</code>: Mean of the susceptibility parameter distribution</p></li>
+<li><p><code>sigma_susc</code>: Scale (standard deviation) of the susceptibility parameter
+distribution.</p></li>
+</ul></td>
     </tr>
     <tr>
-      <th>p_rewire</th>
-      <td><p>The probability to rewire an edge from a neighbor to a
-random node..</p></td>
+      <th>prog_df</th>
+      <td><p>A data frame of parameters for disease
+progression probability distributions. Columns are:</p><ul>
+<li><p><code>age_bkt</code>: The age bracket (ordered factor).</p></li>
+<li><p><code>sex</code>: The sex (factor with levels "M" and "F").</p></li>
+<li><p><code>med_cond</code>: Has a medical condition (logical).</p></li>
+<li><p><code>sympt</code>: Has symptoms of COVID-19, if infectious (logical).</p></li>
+<li><p><code>shape_ei</code>: Shape parameter for progression from "E" to "I" compartment.</p></li>
+<li><p><code>scale_ei</code>: Scale parameter for progression from "E" to "I" compartment.</p></li>
+<li><p><code>shape_ir</code>: Shape parameter for progression from "I" to "R" compartment.</p></li>
+<li><p><code>scale_ir</code>: Scale parameter for progression from "I" to "R" compartment.</p></li>
+</ul></td>
     </tr>
     <tr>
-      <th>probs</th>
-      <td><p>A contagion probability matrix</p></td>
+      <th>home_nw_params</th>
+      <td><p>A named list with parameters for the home-contacts
+network. The list should have elements:</p><ul>
+<li><p><code>freq</code>: The frequency of contacts in the network (contacts per day)</p></li>
+<li><p><code>intens</code>: The intensity of contacts in the network</p></li>
+<li><p><code>topol</code>: The topology of the network: "smallworld" or "Barabasi Albert".</p></li>
+<li><p><code>nbrw</code>: The size of the neighborhood (small world) or the number of edges
+to add per time step (BA).</p></li>
+<li><p><code>p_rewire</code>: The probability of rewiring an edge (small world) or the
+power of the preferential attachments (BA).</p></li>
+</ul></td>
     </tr>
     <tr>
-      <th>trans</th>
-      <td><p>Disease progression transition parameters</p></td>
+      <th>social_nw_params</th>
+      <td><p>A named list with parameters for social contacts.</p></td>
+    </tr>
+    <tr>
+      <th>work_nw_params</th>
+      <td><p>A named list with parameters for work contacts.</p></td>
     </tr>
     </table>
 
@@ -194,8 +227,7 @@ probabilities for disease transmission, and transition probabilities for
 progress to the next stage of the disease.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'># ADD_EXAMPLES_HERE
-</div></pre>
+    <pre class="examples"><div class='input'><span class='co'># ADD_EXAMPLES_HERE</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

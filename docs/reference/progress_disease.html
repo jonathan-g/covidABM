@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Contagion probability arraw — probs • covidABM</title>
+<title>Progress agents in the "E" and "I" compartments to the next compartments
+("I" and "R", respectively). — progress_disease • covidABM</title>
 
 
 <!-- jquery -->
@@ -39,8 +40,10 @@
 
 
 
-<meta property="og:title" content="Contagion probability arraw — probs" />
-<meta property="og:description" content="Contagion probability arraw" />
+<meta property="og:title" content="Progress agents in the "E" and "I" compartments to the next compartments
+("I" and "R", respectively). — progress_disease" />
+<meta property="og:description" content="Progress agents in the &quot;E&quot; and &quot;I&quot; compartments to the next compartments
+(&quot;I&quot; and &quot;R&quot;, respectively)." />
 
 
 
@@ -72,7 +75,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -106,22 +109,42 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Contagion probability arraw</h1>
+    <h1>Progress agents in the "E" and "I" compartments to the next compartments
+("I" and "R", respectively).</h1>
     
-    <div class="hidden name"><code>probs.Rd</code></div>
+    <div class="hidden name"><code>progress_disease.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Contagion probability arraw</p>
+    <p>Progress agents in the "E" and "I" compartments to the next compartments
+("I" and "R", respectively).</p>
     </div>
 
-    <pre class="usage"><span class='no'>probs</span></pre>
+    <pre class="usage"><span class='fu'>progress_disease</span>(<span class='kw'>agents</span>)</pre>
 
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>agents</th>
+      <td><p>A <code>data.table</code> containing agents. This <code>data.table</code> should have
+columns:</p><ul>
+<li><p><code>seir</code>: The SEIR status (integer index ranging from 1 to 4)</p></li>
+<li><p><code>ticks</code>: The number of time steps the agent has been in the compartment.</p></li>
+<li><p><code>ei_shape</code>, <code>ei_scale</code>, <code>ir_shape</code>, <code>ir_scale</code>: shape and scale
+parameters for the probability distriubtions for transitions from the
+current compartment to the next compartment for "E" to "I" and "I" to
+"R", respectively.</p></li>
+</ul></td>
+    </tr>
+    </table>
 
-    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A six-dimensional array of doubles</p>
+    <p>Invisibly returns a modified version of the <code>agents</code> data table.</p>
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='co'># ADD_EXAMPLES_HERE</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

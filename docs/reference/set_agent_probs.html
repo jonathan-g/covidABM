@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Read parameters for disease progression — read_trans • covidABM</title>
+<title>FUNCTION_TITLE — set_agent_probs • covidABM</title>
 
 
 <!-- jquery -->
@@ -39,11 +39,8 @@
 
 
 
-<meta property="og:title" content="Read parameters for disease progression — read_trans" />
-<meta property="og:description" content="Read parameters for disease progression and create transition probability
-matrices for transitions from exposed to infectious and from infectious to
-recovered. The parameters characterize the mean and scale of the
-distribution (in days)." />
+<meta property="og:title" content="FUNCTION_TITLE — set_agent_probs" />
+<meta property="og:description" content="FUNCTION_DESCRIPTION" />
 
 
 
@@ -75,7 +72,7 @@ distribution (in days)." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covidABM</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0.9000</span>
       </span>
     </div>
 
@@ -109,38 +106,94 @@ distribution (in days)." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Read parameters for disease progression</h1>
+    <h1>FUNCTION_TITLE</h1>
     
-    <div class="hidden name"><code>read_trans.Rd</code></div>
+    <div class="hidden name"><code>set_agent_probs.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Read parameters for disease progression and create transition probability
-matrices for transitions from exposed to infectious and from infectious to
-recovered. The parameters characterize the mean and scale of the
-distribution (in days).</p>
+    <p>FUNCTION_DESCRIPTION</p>
     </div>
 
-    <pre class="usage"><span class='fu'>read_trans</span>(<span class='kw'>trans_file</span> <span class='kw'>=</span> <span class='st'>"transitions.csv"</span>)</pre>
+    <pre class="usage"><span class='fu'>set_agent_probs</span>(<span class='kw'>agents</span>, <span class='kw'>transmission_params</span>, <span class='kw'>progression_params</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>trans_file</th>
-      <td><p>A <code>.csv</code> file with the transition probabilities.</p></td>
+      <th>agents</th>
+      <td><p>A data frame describing agents, with columns:</p><ul>
+<li><p><code>age</code>: Age in years (numeric).</p></li>
+<li><p><code>age_bkt</code>: The age bracket (ordered factor).</p></li>
+<li><p><code>sex</code>: The sex (factor with levels "M" and "F").</p></li>
+<li><p><code>med_cond</code>: Has a medical condition (logical).</p></li>
+<li><p><code>sympt</code>: Has symptoms of COVID-19, if infectious (logical).</p></li>
+<li><p><code>seir</code>: SEIR status (ordered factor with levels "S", "E", "I", and "R").</p></li>
+<li><p><code>id</code>: Unique ID number (integer)</p></li>
+<li><p><code>ticks</code>: days since reaching current disease stage (relevant to "E" and
+"I" status) (integer).</p></li>
+<li><p><code>target</code>: target ticks for transition to next compartment (relevant to
+"E" and "I" status only).</p></li>
+</ul></td>
+    </tr>
+    <tr>
+      <th>transmission_params</th>
+      <td><p>A data frame of parameters for disease
+transmission probability distributions. Columns are:</p><ul>
+<li><p><code>age_bkt</code>: The age bracket (ordered factor).</p></li>
+<li><p><code>sex</code>: The sex (factor with levels "M" and "F").</p></li>
+<li><p><code>med_cond</code>: Has a medical condition (logical).</p></li>
+<li><p><code>sympt</code>: Has symptoms of COVID-19, if infectious (logical).</p></li>
+<li><p><code>mu_shed</code>: Mean of the shedding parameter distribution.</p></li>
+<li><p><code>sigma_shed</code>: Scale (standard deviation) of the shedding parameter
+distribution.</p></li>
+<li><p><code>mu_susc</code>: Mean of the susceptibility parameter distribution</p></li>
+<li><p><code>sigma_susc</code>: Scale (standard deviation) of the susceptibility parameter
+distribution.</p></li>
+</ul></td>
+    </tr>
+    <tr>
+      <th>progression_params</th>
+      <td><p>A data frame of parameters for disease
+progression probability distributions. Columns are:</p><ul>
+<li><p><code>age_bkt</code>: The age bracket (ordered factor).</p></li>
+<li><p><code>sex</code>: The sex (factor with levels "M" and "F").</p></li>
+<li><p><code>med_cond</code>: Has a medical condition (logical).</p></li>
+<li><p><code>sympt</code>: Has symptoms of COVID-19, if infectious (logical).</p></li>
+<li><p><code>shape_ei</code>: Shape parameter for progression from "E" to "I" compartment.</p></li>
+<li><p><code>scale_ei</code>: Scale parameter for progression from "E" to "I" compartment.</p></li>
+<li><p><code>shape_ir</code>: Shape parameter for progression from "I" to "R" compartment.</p></li>
+<li><p><code>scale_ir</code>: Scale parameter for progression from "I" to "R" compartment.</p></li>
+</ul></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A named list containing two n-dimensional matrices of parameters
-(with elements <code>e</code> for exposed to infectious transitions and <code>i</code> for
-infectious to recovered transitions).</p>
+    <p>A <code>data.table</code> with transmission probabilities and progression
+parameters for each agent. Columns are:</p><ul>
+<li><p><code>age</code>: Age in years (numeric).</p></li>
+<li><p><code>age_bkt</code>: The age bracket (ordered factor).</p></li>
+<li><p><code>sex</code>: The sex (factor with levels "M" and "F").</p></li>
+<li><p><code>med_cond</code>: Has a medical condition (logical).</p></li>
+<li><p><code>sympt</code>: Has symptoms of COVID-19, if infectious (logical).</p></li>
+<li><p><code>seir</code>: SEIR status (ordered factor with levels "S", "E", "I", and "R").</p></li>
+<li><p><code>id</code>: Unique ID number (integer)</p></li>
+<li><p><code>ticks</code>: days since reaching current disease stage (relevant to "E" and
+"I" status) (integer).</p></li>
+<li><p><code>target</code>: target ticks for transition to next compartment (relevant to
+"E" and "I" status only).</p></li>
+<li><p><code>x_shed</code>: Shedding parameter.</p></li>
+<li><p><code>x_susc</code>: Susceptibility parameter.</p></li>
+<li><p><code>shape_ei</code>: Shape parameter for progression from "E" to "I" compartment.</p></li>
+<li><p><code>scale_ei</code>: Scale parameter for progression from "E" to "I" compartment.</p></li>
+<li><p><code>shape_ir</code>: Shape parameter for progression from "I" to "R" compartment.</p></li>
+<li><p><code>scale_ir</code>: Scale parameter for progression from "I" to "R" compartment.</p></li>
+</ul>
+
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'># ADD_EXAMPLES_HERE
-</div></pre>
+    <pre class="examples"><div class='input'><span class='co'># ADD_EXAMPLES_HERE</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
