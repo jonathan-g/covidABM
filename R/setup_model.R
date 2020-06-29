@@ -197,6 +197,15 @@ setup_model <- function(agent_count, age_dist, p_female,
     prog_df <- .covidABM$prog_df
   }
 
+  # Pacify R CMD check for non-standard evaluation
+  age_bkt  <- NULL
+  id       <- NULL
+  scale_ei <- NULL
+  scale_ir <- NULL
+  seir     <- NULL
+  shape_ei <- NULL
+  shape_ir <- NULL
+  target   <- NULL
 
   if (is.integer(trans_df$age_bkt)) {
     trans_df <- trans_df[, age_bkt := .covidABM$age_brackets$bracket[age_bkt]]
@@ -239,9 +248,9 @@ setup_model <- function(agent_count, age_dist, p_female,
                          nw_intensity = work_nw_params$intens,
                          topology = work_nw_params$topol,
                          nei = work_nw_params$nbrw, p = work_nw_params$p_rewire)
-  setkey(home$neighbors,   head, tail)
-  setkey(social$neighbors, head, tail)
-  setkey(work$neighbors,   head, tail)
+  setkeyv(home$neighbors,   c("head", "tail"))
+  setkeyv(social$neighbors, c("head", "tail"))
+  setkeyv(work$neighbors,   c("head", "tail"))
 
   networks <- list(home = home, work = work, social = social)
 
@@ -262,11 +271,6 @@ setup_model <- function(agent_count, age_dist, p_female,
 #'   These should add up to 1.0.
 #' @param p_med_cond Probability of having a medical condition.
 #' @param p_sympt Probability of being symptomatic when infectious.
-#' @param neighbors The number of neighbor edges in the ring network graph to
-#'   initialize the small world network (2 = connect to both nearest neighbors
-#'   on the ring;  4 = connect to both neighbors and their neighbors, etc.).
-#' @param p_rewire The probability to rewire an edge from a neighbor to a
-#'   random node..
 #'
 #' @return A model, as returned by [setup_model()]
 #' @examples
@@ -276,7 +280,7 @@ setup_test_model <- function(n_agents = 100, mean_age = 40.0, std_age = 20.0,
                              p_female = 0.50, p_med_cond = 0.20,
                              p_seir = c(0.99, 0.0, 0.01, 0.0),
                              p_sympt = 0.50) {
-  f_age <- ~rnorm(n = .n, mean = mean_age, sd = std_age)
+  f_age <- ~stats::rnorm(n = .n, mean = mean_age, sd = std_age)
   xp <- rlang::f_rhs(f_age)
   xp <- rlang::call_standardise(xp)
   xp <- rlang::call_modify(xp, mean = mean_age, sd = std_age)

@@ -14,8 +14,8 @@
 #' # ADD_EXAMPLES_HERE
 #' @export
 transition_prob <- function(ticks, shape, scale) {
-  p <- pgamma(ticks, shape = shape, scale = scale) -
-    pgamma(ticks - 1, shape = shape, scale = scale)
+  p <- stats::pgamma(ticks, shape = shape, scale = scale) -
+    stats::pgamma(ticks - 1, shape = shape, scale = scale)
   p
 }
 
@@ -23,7 +23,7 @@ set_target <- function(n, shape, scale) {
   if (missing(n)) {
     n <- length(shape)
   }
-  ticks <- rgamma(n, shape = shape, scale = scale)
+  ticks <- stats::rgamma(n, shape = shape, scale = scale)
   ticks <- as.integer(ceiling(ticks))
   ticks
 }
@@ -49,9 +49,16 @@ progress_disease <- function(agents) {
   level_i <- get_seir_level("I")
   level_r <- get_seir_level("R")
 
+  # Pacify R CMD check with non-standard evaluation
+  scale_ir <- NULL
+  seir <- NULL
+  shape_ir <- NULL
+  target <- NULL
+  ticks <- NULL
+
   agents[seir == level_e & target <= ticks,
-         c("seir", "ticks", "target") :=
-           .(level_i, 0, set_target(.N, shape_ir, scale_ir))]
+         c("seir", "ticks", "target") := list(level_i, 0,
+                                              set_target(.N, shape_ir, scale_ir))]
   agents[seir == level_i & target <= ticks,
          c("seir", "ticks", "target") := list(level_r, 0, 0)]
 

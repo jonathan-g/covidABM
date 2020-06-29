@@ -29,8 +29,10 @@ get_seir_level <- function(x) {
 #' @export
 decode_seir <- function(x) {
   assertthat::assert_that(all(x %in% .covidABM$seir_levels))
-  names(.covidABM$seir_levels)[x]
-  names <- ordered(names, levels = names(.covidABM$seir_levels))
+  seir_levels <- names(.covidABM$seir_levels)
+  decoded <- seir_levels[x]
+  decoded <- ordered(decoded, levels = seir_levels)
+  decoded
 }
 
 #' Get the age bracket
@@ -64,7 +66,8 @@ get_age_bracket <- function(x) {
 #'
 #' @return An ordered factor
 #' @examples
-#' decode_age_bracket(c("0-20", "30-40"))
+#' decode_age_bracket(c("0-19", "30-39"))
+#' @export
 decode_age_bracket <- function(x) {
   brackets <- .covidABM$age_brackets$bracket
   bkts <- NULL
@@ -82,7 +85,7 @@ decode_age_bracket <- function(x) {
     bkts <- ordered(x, levels = levels(brackets))
   } else {
     stop("Argument to decode_age_bracket is of unsupported type ", typeof(x),
-         " class ", str_c(class(x), collapse = ", "), ".")
+         " class ", stringr::str_c(class(x), collapse = ", "), ".")
   }
   bkts
 }

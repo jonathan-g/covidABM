@@ -9,4 +9,5 @@
 # advice (vignette('datatable-importing', 'data.table')).
 #
 #' @import data.table
+#' @importFrom data.table .N
 NULL

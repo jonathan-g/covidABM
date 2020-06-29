@@ -25,31 +25,31 @@ tick <- function(model, tracing = FALSE) {
   agents <- model$agts
 
   if (tracing) {
-    n_s <<- sum(agents$seir == level_s)
-    n_e <<- sum(agents$seir == level_e)
-    n_i <<- sum(agents$seir == level_i)
-    n_r <<- sum(agents$seir == level_r)
+    n_s <- sum(agents$seir == level_s)
+    n_e <- sum(agents$seir == level_e)
+    n_i <- sum(agents$seir == level_i)
+    n_r <- sum(agents$seir == level_r)
   }
 
   agents$ticks <- agents$ticks + 1
   agents <- progress_disease(agents)
   if (tracing) {
-    n_s2 <<- sum(agents$seir == level_s)
-    n_e2 <<- sum(agents$seir == level_e)
-    n_i2 <<- sum(agents$seir == level_i)
-    n_r2 <<- sum(agents$seir == level_r)
+    n_s2 <- sum(agents$seir == level_s)
+    n_e2 <- sum(agents$seir == level_e)
+    n_i2 <- sum(agents$seir == level_i)
+    n_r2 <- sum(agents$seir == level_r)
   }
 
   agents <- infect(agents, model$neighbors)
   if (tracing) {
-    n_s3 <<- sum(agents$seir == level_s)
-    n_e3 <<- sum(agents$seir == level_e)
-    n_i3 <<- sum(agents$seir == level_i)
-    n_r3 <<- sum(agents$seir == level_r)
+    n_s3 <- sum(agents$seir == level_s)
+    n_e3 <- sum(agents$seir == level_e)
+    n_i3 <- sum(agents$seir == level_i)
+    n_r3 <- sum(agents$seir == level_r)
 
-    d_r <<- n_r2 - n_r
-    d_i <<- n_e - n_e2
-    d_e <<- n_e3 - n_e2
+    d_r <- n_r2 - n_r
+    d_i <- n_e - n_e2
+    d_e <- n_e3 - n_e2
 
     assertthat::assert_that(n_s2 == n_s,
                             msg = "Susceptible population should not change under disease progression.")

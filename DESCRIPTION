@@ -1,6 +1,6 @@
 Package: covidABM
 Title: Agent-based models of the spread of COVID-19
-Version: 0.0.0.9000
+Version: 0.1.0.9000
 Authors@R: 
     person(given = c("Jonathan", "M."),
            family = "Gilligan",
@@ -31,4 +31,4 @@ Imports:
     utils,
     data.table
 Depends: 
-    R (>= 3.6.0)
+    R (>= 4.0.0)

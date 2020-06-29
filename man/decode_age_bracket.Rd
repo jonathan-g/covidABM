@@ -19,5 +19,5 @@ translate it into an ordered factor compatible with the global
 \code{age_brackets} variable.
 }
 \examples{
-decode_age_bracket(c("0-20", "30-40"))
+decode_age_bracket(c("0-19", "30-39"))
 }

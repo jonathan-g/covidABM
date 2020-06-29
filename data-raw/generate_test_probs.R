@@ -9,6 +9,7 @@
 #' @return RETURN_DESCRIPTION
 #' @examples
 #' # ADD_EXAMPLES_HERE
+#' @export
 generate_transmission_params <- function() {
   trans_lst <- list(sex = c("M", "F"), age_bkt = seq(nrow(age_brackets)),
                     sympt = c(TRUE, FALSE), med_cond = c(TRUE, FALSE))

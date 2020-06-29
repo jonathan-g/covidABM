@@ -69,12 +69,18 @@ set_agent_probs <- function(agents, transmission_params, progression_params) {
   agents <- merge(agents, progression_params,
                   by = c("age_bkt", "sex", "sympt", "med_cond"), all.x = TRUE)
 
+  # Pacify R CMD check for non-standard evaluation
+  mu_shed <- NULL
+  mu_susc <- NULL
+  sigma_shed <- NULL
+  sigma_susc <- NULL
+
   agents <- agents[, c("x_shed", "x_susc") :=
                      list(
-                       # rbeta(.N, p_shed_1, p_shed_2),
-                       # rbeta(.N, p_susc_1, p_susc_2)
-                       rnorm(.N, mu_shed, sigma_shed),
-                       rnorm(.N, mu_susc, sigma_susc)
+                       # stats::rbeta(.N, p_shed_1, p_shed_2),
+                       # stats::rbeta(.N, p_susc_1, p_susc_2)
+                       stats::rnorm(.N, mu_shed, sigma_shed),
+                       stats::rnorm(.N, mu_susc, sigma_susc)
                      )
   ]
   agents <- agents[, ! c("mu_shed", "mu_susc", "sigma_shed", "sigma_susc")]
