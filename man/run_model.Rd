@@ -4,7 +4,7 @@
 \alias{run_model}
 \title{Run a model}
 \usage{
-run_model(model, ticks, progress = FALSE)
+run_model(model, ticks, progress = FALSE, check_term = TRUE)
 }
 \arguments{
 \item{model}{A model object returned from \code{\link[=setup_model]{setup_model()}}.}
@@ -14,6 +14,9 @@ run_model(model, ticks, progress = FALSE)
 \item{progress}{Print progress messages for every tick
 If it's \code{TRUE} or 1, a message is printed. If it's greater than 1
 additional messages from \code{\link[=tick]{tick()}} are printed.}
+
+\item{check_term}{Check populations in compartments and terminate early if
+there are no agents in either E or I (so no further infections can happen).}
 }
 \value{
 A named list with the resulting model after the ticks, and

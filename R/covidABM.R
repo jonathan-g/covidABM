@@ -15,23 +15,24 @@
 #' @keywords internal
 "seir_levels"
 
-#' Contagion probability arraw
+#' Disease transmission probability arraw
 #' @format A six-dimensional array of doubles
 #' @keywords internal
-"probs"
+"trans_df"
 
-#' Transition parameters for disease progression
+#' Progression parameters for disease progression
 #'
 #' @format A named list of five-dimensional arrays of doubles
 #' @keywords internal
-"trans"
+"prog_df"
 
 .covidABM <- new.env(parent = emptyenv())
 
 .onLoad <- function(libname, pkgname) {
-  assign("probs", probs, envir = .covidABM)
-  assign("trans", trans, envir = .covidABM)
+  assign("trans_df", trans_df, envir = .covidABM)
+  assign("prog_df", prog_df, envir = .covidABM)
   assign("seir_levels", seir_levels, envir = .covidABM)
   assign("age_brackets", age_brackets, envir = .covidABM)
   assign("tracing", FALSE, envir = .covidABM)
 }
+

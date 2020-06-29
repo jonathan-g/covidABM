@@ -9,47 +9,49 @@
 #' @return RETURN_DESCRIPTION
 #' @examples
 #' # ADD_EXAMPLES_HERE
-generate_probs <- function(r0 = 2.3, contacts = 5, days_contagious = 14) {
-  prob_df <- list(agt_sex = c("M", "F"), agt_age_bkt = seq(nrow(age_brackets)),
-                  agt_sympt = c(TRUE, FALSE),
-                  sub_age_bkt = seq(nrow(age_brackets)),
-                  sub_sex = c("M", "F"), sub_med_cond = c(TRUE, FALSE)) %>%
-    purrr::map(~rep_len(.x, 8)) %>%tibble::as_tibble() %>%
-    tidyr::expand(!!!rlang::syms(names(.))) %>%
-    distinct()
+#' @export
+generate_transmission_params <- function() {
+  trans_lst <- list(sex = c("M", "F"), age_bkt = seq(nrow(age_brackets)),
+                    sympt = c(TRUE, FALSE), med_cond = c(TRUE, FALSE))
+  list_len <- max(purrr::map_int(trans_lst, length))
+  trans_lst <- purrr::map(trans_lst, ~rep_len(.x, list_len))
+  trans_df <- tibble::as_tibble(trans_lst)
+  trans_df <- tidyr::expand(trans_df, !!!rlang::syms(names(trans_df)))
+  trans_df <- dplyr::distinct(trans_df)
 
-  prob_df <- prob_df %>% dplyr::mutate(shed = ifelse(agt_sex == "M", 1.0, 0.75) *
-                                  ifelse(agt_sympt, 1.0, 0.52) *
-                                  case_when(
-                                    agt_age_bkt == 1 ~ 0.50,
-                                    agt_age_bkt == 2 ~ 0.60,
-                                    agt_age_bkt == 3 ~ 0.75,
-                                    agt_age_bkt == 4 ~ 0.90,
-                                    agt_age_bkt >= 5 ~ 1.00,
-                                    TRUE ~ 1.00
-                                  ),
-                                suscept = ifelse(sub_sex == "M", 1.0, 0.75) *
-                                  ifelse(sub_med_cond, 1.0, 0.75) *
-                                  case_when(
-                                    sub_age_bkt == 1 ~ 0.50,
-                                    sub_age_bkt == 2 ~ 0.75,
-                                    sub_age_bkt == 3 ~ 0.80,
-                                    sub_age_bkt == 4 ~ 0.85,
-                                    sub_age_bkt == 5 ~ 0.90,
-                                    sub_age_bkt == 6 ~ 0.96,
-                                    sub_age_bkt == 7 ~ 0.98,
-                                    sub_age_bkt >= 8 ~ 1.00,
-                                    TRUE ~ 1.00
-                                  ),
-                                prob = shed * suscept)
+  mu_shed_0 <- 2.0
+  mu_susc_0 <- 0.0
 
-  p_norm <- r0 / (contacts * days_contagious)
-
-  p_mean <- mean(prob_df$prob)
-  prob_df <- prob_df %>% dplyr::select(-shed, -suscept) %>%
-    dplyr::mutate(prob = prob * p_norm / p_mean)
-
-  invisible(prob_df)
+  trans_df <- dplyr::mutate(trans_df,
+                            mu_shed = mu_shed_0 +
+                              ifelse(sex == "M", 0.0, -1.6) +
+                              ifelse(sympt, 0.0, -1.8) +
+                              dplyr::case_when(
+                                age_bkt == 1 ~ -0.80,
+                                age_bkt == 2 ~ -0.60,
+                                age_bkt == 3 ~ -0.40,
+                                age_bkt == 4 ~ -0.20,
+                                age_bkt >= 5 ~  0.00,
+                                TRUE ~ 0.00
+                              ),
+                            mu_susc = mu_susc_0 +
+                              ifelse(sex == "M", 1.0, 0.75) +
+                              ifelse(med_cond, 2.0, 0.0) +
+                              dplyr::case_when(
+                                age_bkt == 1 ~ -2.00,
+                                age_bkt == 2 ~ -1.50,
+                                age_bkt == 3 ~ -1.00,
+                                age_bkt == 4 ~ -0.50,
+                                age_bkt == 5 ~ -0.00,
+                                age_bkt == 6 ~  0.50,
+                                age_bkt == 7 ~  1.50,
+                                age_bkt >= 8 ~  2.00,
+                                TRUE ~ 0.00
+                              ),
+                            sigma_shed = 2.0,
+                            sigma_susc = 1.0
+  )
+  invisible(trans_df)
 }
 
 
@@ -62,12 +64,12 @@ generate_probs <- function(r0 = 2.3, contacts = 5, days_contagious = 14) {
 #' @return RETURN_DESCRIPTION
 #' @examples
 #' # ADD_EXAMPLES_HERE
-create_prob_cfg <- function(file = "probabilities.csv") {
-  pdf <- generate_probs()
+create_transmission_cfg <- function(file = "transmission.csv") {
+  trans_df <- generate_transmission_params()
   if (! is.null(file)) {
-    readr::write_csv(pdf, file)
+    readr::write_csv(trans_df, file)
   }
-  invisible(pdf)
+  invisible(trans_df)
 }
 
 
@@ -83,54 +85,74 @@ create_prob_cfg <- function(file = "probabilities.csv") {
 #' @return RETURN_DESCRIPTION
 #' @examples
 #' # ADD_EXAMPLES_HERE
-generate_transitions <- function(min_incubate = 2.5, max_incubate = 11.5,
-                                 min_contagious = 10, max_contagious = 18) {
-  df <- list(sex = c("M", "F"), age_bkt = seq(nrow(age_brackets)),
-             sympt = c(TRUE, FALSE), med_cond = c(TRUE, FALSE)) %>%
-    purrr::map(~rep_len(.x, 8)) %>%tibble::as_tibble() %>%
-    tidyr::expand(!!!rlang::syms(names(.))) %>%
-    distinct()
+generate_progression_params <- function(pre_symptom_delta = 2,
+                                        distr = c("gamma", "weibull"),
+                                        mean_incubate = 5.4,
+                                        min_incubate = 2.5, max_incubate = 11.5,
+                                        mean_contagious = 5.0,
+                                        min_contagious = 3, max_contagious = 8) {
+  distr <- match.arg(distr)
+  #
+  # Parameters from
+  # Lauer, S. A., et al. (2020).
+  # The Incubation Period of Coronavirus Disease 2019 (COVID-19) From Publicly
+  # Reported Confirmed Cases: Estimation and Application.
+  # Annals of Internal Medicine. https://doi.org/10.7326/M20-0504
+  #
+  if (distr == "gamma") {
+    shape_ei <- 5.807
+  } else if (distr == "weibull") {
+    shape_ei <- 2.453
+  } else {
+    stop("Unknown distribution for transmission parameters")
+  }
 
-  x0 <- (min_incubate + max_incubate) / 2
-  x_low <- x0 - qlogis(0.025, x0, 1.0)
-  s <- (x0 - min_incubate) / x_low
+  if (distr == "gamma") {
+    scale_ei <- (mean_incubate - pre_symptom_delta) / shape_ei
+  } else if (distr == "weibull") {
+    scale_ei <- (mean_incubate - pre_symptom_delta) / gamma(1.0 +
+                                                              1.0 / shape_ei)
+  } else {
+    stop("Unknown distribution for transmission parameters")
+  }
 
-  e_df <- df %>% dplyr::mutate(loc = ifelse(sex == "M", x0, x0) *
-                          case_when(
-                            age_bkt == 1 ~ 1.3,
-                            age_bkt == 2 ~ 1.2,
-                            age_bkt == 3 ~ 1.1,
-                            age_bkt >= 4 ~ 1.0,
-                            TRUE ~ 1.0
-                          ) -
-                          ifelse(med_cond, 1.0, 0.0),
-                        scale = s )
+  prog_lst <- list(sex = c("M", "F"), age_bkt = seq(nrow(age_brackets)),
+                   sympt = c(TRUE, FALSE), med_cond = c(TRUE, FALSE))
+  prog_lst <- purrr::map(prog_lst, ~rep_len(.x, 8))
+  prog_df <- tibble::as_tibble(prog_lst)
+  prog_df <- tidyr::expand(prog_df, !!!rlang::syms(names(prog_df)))
+  prog_df <- dplyr::distinct(prog_df)
 
-  x0 <- (min_contagious + max_contagious) / 2
-  x_low <- x0 - qlogis(0.025, x0, 1.0)
-  s <- (x0 - min_contagious) / x_low
+  e_df <- dplyr::mutate(prog_df,
+                        shape = shape_ei,
+                        scale = scale_ei,
+                        compartment = "E"
+  )
+  e_df <- dplyr::distinct(e_df)
 
-  i_df <- df %>% dplyr::mutate(loc = ifelse(sex == "M", x0, x0) *
-                          case_when(
-                            age_bkt == 1 ~ 0.8,
-                            age_bkt == 2 ~ 1.0,
-                            age_bkt == 3 ~ 1.0,
-                            age_bkt == 4 ~ 1.1,
-                            age_bkt >= 5 ~ 1.2,
-                            TRUE ~ 1.0
-                          ) *
-                          ifelse(med_cond, 1.25, 1.00),
-                        scale = s)
 
-  e_df <- e_df %>% dplyr::mutate(compartment = "E")
+  shape_ir <- shape_ei
 
-  i_df <- i_df %>% dplyr::mutate(compartment = "I")
+  if (distr == "gamma") {
+    scale_ir <- mean_contagious / shape_ir
+  } else if (distr == "weibull") {
+    scale_ir <- mean_contagious / gamma(1.0 + 1.0 / shape_ir)
+  } else {
+    stop("Unknown distribution for transmission parameters")
+  }
 
-  df <- dplyr::bind_rows(e_df, i_df) %>%
-    tidyr::pivot_longer(cols = c("loc", "scale"), names_to = "param",
-                 values_to = "value")
+  i_df <- dplyr::mutate(prog_df,
+                        shape = shape_ir,
+                        scale = scale_ir,
+                        compartment = "I"
+  )
+  i_df <- dplyr::distinct(i_df)
 
-  invisible(df)
+  prog_df <- dplyr::bind_rows(e_df, i_df)
+  prog_df <- tidyr::pivot_longer(prog_df, cols = c("shape", "scale"),
+                                 names_to = "param", values_to = "value")
+
+  invisible(prog_df)
 }
 
 
@@ -143,10 +165,10 @@ generate_transitions <- function(min_incubate = 2.5, max_incubate = 11.5,
 #' @return RETURN_DESCRIPTION
 #' @examples
 #' # ADD_EXAMPLES_HERE
-create_transition_cfg <- function(file = "transitions.csv") {
-  trans_df <- generate_transitions()
+create_progression_cfg <- function(file = "progression.csv") {
+  prog_df <- generate_progression_params()
   if (!is.null(file)) {
-    readr::write_csv(trans_df, file)
+    readr::write_csv(prog_df, file)
   }
-  invisible(trans_df)
+  invisible(prog_df)
 }
