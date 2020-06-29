@@ -12,7 +12,6 @@ reference:
     Manipulate details of agent and network creation, and running.
 - contents:
   - build_agent_df
-  - generate_agent_params
   - tick
   - infect
   - progress_disease
@@ -20,12 +19,13 @@ reference:
   desc: >
     Access details of model parameters
 - contents:
-- title: "Set up model parameters"
-  desc: >
-    Create parameter sets or read them from disk.
-- contents:
   - decode_age_bracket
   - decode_seir
   - get_age_bracket
   - get_seir_level
   - transition_prob
+- title: "Set up model parameters"
+  desc: >
+    Create parameter sets or read them from disk.
+- contents:
+  - generate_agent_params

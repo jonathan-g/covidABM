@@ -1,15 +1,38 @@
+variables:
+  R_LIBS_USER: "$CI_PROJECT_DIR/ci/lib"
+  CHECK_DIR: "$CI_PROJECT_DIR/ci/logs"
+  BUILD_LOGS_DIR: "$CI_PROJECT_DIR/ci/logs/$CI_PROJECT_NAME.Rcheck"
+  CRAN_REPOS: "https://cran.rstudio.com/"
+
 image: rocker/tidyverse
 
 stages:
-  - build
+  - init
+  - check
   - test
   - deploy
 
-building:
-  stage: build
+initialize:
+  stage: init
   script:
-    - R -e "remotes::install_deps(dependencies = TRUE)"
-    - R -e 'devtools::check()'
+    - mkdir -p $R_LIBS_USER $BUILD_LOGS_DIR
+    - Rscript .gitlab-ci/.RProfile -e 'message(paste(.libPaths(), collapse = ", "))'
+    - Rscript .gitlab-ci/.RProfile  -e 'remotes::install_deps(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"), repos = Sys.getenv("CRAN_REPOS"), upgrade = TRUE)'
+  cache:
+    paths:
+      - $R_LIBS_USER
+
+checking:
+  stage: check
+  dependencies:
+    - initialize
+  script:
+    - pwd
+    - ls -lah .
+    - ls -lah ~
+    - Rscript .gitlab-ci/.RProfile  -e 'message(paste(.libPaths(), collapse = ", "))'
+    - Rscript .gitlab-ci/.RProfile  -e 'devtools::check(check_dir = Sys.getenv("CHECK_DIR"))'
+    - Rscript .gitlab-ci/.RProfile  -e 'if (length(devtools::check_failures(path = Sys.getenv("BUILD_LOGS_DIR"), note = FALSE)) > 0) stop()'
 
 # To have the coverage percentage appear as a gitlab badge follow these
 # instructions:
@@ -18,17 +41,22 @@ building:
 # Coverage: \d+\.\d+
 
 testing:
-    stage: test
-    allow_failure: true
-    when: on_success
-    only:
-        - master
-    script:
-        - Rscript -e 'install.packages(c("DT", "igraph"))'
-        - Rscript -e 'covr::gitlab(quiet = FALSE)'
-    artifacts:
-        paths:
-            - public
+  stage: test
+  dependencies:
+    - initialize
+  allow_failure: true
+  when: on_success
+  only:
+    - master
+  script:
+    - cp .gitlab-ci/.RProfile ~/.RProfile
+    - mkdir -p $R_LIBS_USER
+    - Rscript .gitlab-ci/.RProfile  -e 'message(paste(.libPaths(), collapse = ", "))'
+    - Rscript .gitlab-ci/.RProfile  -e 'remotes::install_cran(c("DT", "igraph"), lib = Sys.getenv("R_LIBS_USER"), repos = Sys.getenv("CRAN_REPOS"), force = FALSE, upgrade = TRUE)'
+    - Rscript .gitlab-ci/.RProfile  -e 'covr::gitlab(quiet = FALSE)'
+  cache:
+    paths:
+      - $R_LIBS_USER
 
 # To produce a code coverage report as a GitLab page see
 # https://about.gitlab.com/2016/11/03/publish-code-coverage-report-with-gitlab-pages/
@@ -47,18 +75,24 @@ testing:
 #         - master
 
 pages:
-      stage: deploy
-      dependencies:
-          - testing
-      script:
-          - Rscript -e "remotes::install_local(dependencies = TRUE)"
-          - Rscript -e 'install.packages("pkgdown")'
-          - Rscript -e 'file.create("pkgdown.yml")'
-          - cp pkgdown.yml public
-          - Rscript -e 'pkgdown::build_site(override = list(destination = "public"), preview=FALSE)'
-      artifacts:
-          paths:
-              - public
-          expire_in: 30 days
-      only:
-          - master
+  stage: deploy
+  dependencies:
+    - testing
+  script:
+    - mkdir -p $R_LIBS_USER
+    - Rscript .gitlab-ci/.RProfile  -e 'message(paste(.libPaths(), collapse = ", "))'
+    - Rscript .gitlab-ci/.RProfile  -e 'remotes::install_local(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"), repos = Sys.getenv("CRAN_REPOS"), force = TRUE, upgrade = TRUE)'
+    - Rscript .gitlab-ci/.RProfile  -e 'remotes::install_cran("pkgdown", lib = Sys.getenv("R_LIBS_USER"), repos = Sys.getenv("CRAN_REPOS"), force = FALSE, upgrade = TRUE)'
+    - Rscript -e 'file.create("pkgdown.yml")'
+    - mkdir public
+    - cp pkgdown.yml public
+    - Rscript .gitlab-ci/.RProfile  -e 'pkgdown::build_site(override = list(destination = "public"), preview=FALSE)'
+  cache:
+    paths:
+      - $R_LIBS_USER
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - master
