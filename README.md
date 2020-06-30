@@ -3,7 +3,7 @@
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![GitHub workflow status: R-CMD-check](https://github.com/jonathan-g/covidABM/workflows/R-CMD-check/badge.svg)](https://github.com/jonathan-g/covidABM/commits/master)
 [![GitHub workflow status: pkgdown](https://github.com/jonathan-g/covidABM/workflows/pkgdown/badge.svg)](https://github.com/jonathan-g/covidABM/commits/master)
 [![GitLab pipeline status](https://gitlab.jgilligan.org/covid-19-modeling/covidABM/badges/master/pipeline.svg)](https://gitlab.jgilligan.org/covid-19-modeling/covidABM/-/commits/master)
