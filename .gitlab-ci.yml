@@ -1,7 +1,7 @@
 variables:
   R_LIBS_USER: "$CI_PROJECT_DIR/ci/lib"
   CHECK_DIR: "$CI_PROJECT_DIR/ci/logs"
-  BUILD_LOGS_DIR: "$CI_PROJECT_DIR/ci/logs/covidABM.Rcheck"
+  BUILD_LOGS_DIR: "$CHECK_DIR/$CI_PROJECT_NAME.Rcheck"
   CRAN_REPOS: "https://cran.rstudio.com/"
 
 image: rocker/tidyverse
