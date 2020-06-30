@@ -14,4 +14,6 @@ The model is under active development and is currently in an early experimental
 state. More detailed documnetation will appear as this package matures.
 
 Reference manual is available at 
-<https://covid-19-modeling.pages.jgilligan.org/covid-abm-package/reference/>
+<https://covid-19-modeling.pages.jgilligan.org/covidABM/reference/>
+and
+<https://jonathan-g.github.io/covidABM/reference/>

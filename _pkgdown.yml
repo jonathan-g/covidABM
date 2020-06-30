@@ -1,3 +1,5 @@
+url: https://jonathan-g.github.io/covidABM
+
 destination: docs
 reference:
 - title: "High-level model interface"
