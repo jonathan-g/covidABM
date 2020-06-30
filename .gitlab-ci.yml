@@ -1,7 +1,7 @@
 variables:
   R_LIBS_USER: "$CI_PROJECT_DIR/ci/lib"
   CHECK_DIR: "$CI_PROJECT_DIR/ci/logs"
-  BUILD_LOGS_DIR: "$CI_PROJECT_DIR/ci/logs/$CI_PROJECT_NAME.Rcheck"
+  BUILD_LOGS_DIR: "$CI_PROJECT_DIR/ci/logs/covidABM.Rcheck"
   CRAN_REPOS: "https://cran.rstudio.com/"
 
 image: rocker/tidyverse
@@ -16,9 +16,11 @@ initialize:
   stage: init
   script:
     - mkdir -p $R_LIBS_USER $BUILD_LOGS_DIR
-    - Rscript .gitlab-ci/.RProfile -e 'message(paste(.libPaths(), collapse = ", "))'
-    - Rscript .gitlab-ci/.RProfile  -e 'remotes::install_deps(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"), repos = Sys.getenv("CRAN_REPOS"), upgrade = TRUE)'
+    - cp .gitlab-ci/.Rprofile ./.Rprofile
+    - Rscript -e 'remotes::install_deps(dependencies = TRUE, repos = Sys.getenv("CRAN_REPOS"), upgrade = TRUE, lib = Sys.getenv("R_LIBS_USER"))'
+    - ls -ah $R_LIBS_USER
   cache:
+    key: lib
     paths:
       - $R_LIBS_USER
 
@@ -27,12 +29,15 @@ checking:
   dependencies:
     - initialize
   script:
-    - pwd
-    - ls -lah .
-    - ls -lah ~
-    - Rscript .gitlab-ci/.RProfile  -e 'message(paste(.libPaths(), collapse = ", "))'
-    - Rscript .gitlab-ci/.RProfile  -e 'devtools::check(check_dir = Sys.getenv("CHECK_DIR"))'
-    - Rscript .gitlab-ci/.RProfile  -e 'if (length(devtools::check_failures(path = Sys.getenv("BUILD_LOGS_DIR"), note = FALSE)) > 0) stop()'
+    - cp .gitlab-ci/.Rprofile ./.Rprofile
+    - ls -ah $R_LIBS_USER
+    - Rscript -e 'devtools::check(check_dir = Sys.getenv("CHECK_DIR"))'
+    - Rscript -e 'if (length(devtools::check_failures(path = Sys.getenv("BUILD_LOGS_DIR"), note = FALSE)) > 0) stop()'
+  cache:
+    key: lib
+    paths:
+      - $R_LIBS_USER
+    policy: pull
 
 # To have the coverage percentage appear as a gitlab badge follow these
 # instructions:
@@ -49,50 +54,36 @@ testing:
   only:
     - master
   script:
-    - cp .gitlab-ci/.RProfile ~/.RProfile
-    - mkdir -p $R_LIBS_USER
-    - Rscript .gitlab-ci/.RProfile  -e 'message(paste(.libPaths(), collapse = ", "))'
-    - Rscript .gitlab-ci/.RProfile  -e 'remotes::install_cran(c("DT", "igraph"), lib = Sys.getenv("R_LIBS_USER"), repos = Sys.getenv("CRAN_REPOS"), force = FALSE, upgrade = TRUE)'
-    - Rscript .gitlab-ci/.RProfile  -e 'covr::gitlab(quiet = FALSE)'
+    - cp .gitlab-ci/.Rprofile ./.Rprofile
+    - ls -ah $R_LIBS_USER
+    - Rscript -e 'covr::gitlab(quiet = FALSE)'
   cache:
+    key: lib
     paths:
       - $R_LIBS_USER
-
-# To produce a code coverage report as a GitLab page see
-# https://about.gitlab.com/2016/11/03/publish-code-coverage-report-with-gitlab-pages/
-
-# pages:
-#     stage: deploy
-#     dependencies:
-#         - testing
-#     script:
-#         - ls
-#     artifacts:
-#         paths:
-#             - public
-#         expire_in: 30 days
-#     only:
-#         - master
+    policy: pull
 
 pages:
   stage: deploy
   dependencies:
-    - testing
+    - checking
   script:
-    - mkdir -p $R_LIBS_USER
-    - Rscript .gitlab-ci/.RProfile  -e 'message(paste(.libPaths(), collapse = ", "))'
-    - Rscript .gitlab-ci/.RProfile  -e 'remotes::install_local(dependencies = TRUE, lib = Sys.getenv("R_LIBS_USER"), repos = Sys.getenv("CRAN_REPOS"), force = TRUE, upgrade = TRUE)'
-    - Rscript .gitlab-ci/.RProfile  -e 'remotes::install_cran("pkgdown", lib = Sys.getenv("R_LIBS_USER"), repos = Sys.getenv("CRAN_REPOS"), force = FALSE, upgrade = TRUE)'
+    - cp .gitlab-ci/.Rprofile ./.Rprofile
+    - ls -ah $R_LIBS_USER
+    - Rscript -e 'remotes::install_local(dependencies = TRUE, repos = Sys.getenv("CRAN_REPOS"), force = TRUE, upgrade = TRUE)'
+    - Rscript -e 'remotes::install_cran("pkgdown", repos = Sys.getenv("CRAN_REPOS"), force = FALSE, upgrade = TRUE, lib = Sys.getenv("R_LIBS_USER"))'
     - Rscript -e 'file.create("pkgdown.yml")'
     - mkdir public
-    - cp pkgdown.yml public
-    - Rscript .gitlab-ci/.RProfile  -e 'pkgdown::build_site(override = list(destination = "public"), preview=FALSE)'
+    - cp pkgdown.yml public/
+    - Rscript -e 'pkgdown::build_site(override = list(destination = "public"), preview=FALSE)'
   cache:
+    key: lib
     paths:
       - $R_LIBS_USER
+    policy: pull
   artifacts:
     paths:
-      - docs
+      - public
     expire_in: 30 days
   only:
     - master

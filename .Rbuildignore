@@ -9,4 +9,5 @@
 ^docs$
 ^pkgdown$
 ^ODD$
-^.github$
+^\.Rprofile$
+^ci$
